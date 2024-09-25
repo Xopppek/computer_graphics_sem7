@@ -211,7 +211,7 @@ public class App {
         double cb = a / 255.0;
         double cs = b / 255.0;
         if (cs > 0.5)
-            return (int) (cb + (2 * cs - 1) * (blendSoftLightD(cb) - cb));
-        return (int) (cb - (1 - 2 * cs) * cb * (1 - cb));
+            return (int) ((cb + (2 * cs - 1) * (blendSoftLightD(cb) - cb)) * 255);
+        return (int) ((cb - (1 - 2 * cs) * cb * (1 - cb)) * 255);
     }
 }
