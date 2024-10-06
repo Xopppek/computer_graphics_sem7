@@ -4,6 +4,8 @@ import org.opencv.core.Mat;
 import org.opencv.highgui.HighGui;
 import org.opencv.imgcodecs.Imgcodecs;
 
+import java.util.Arrays;
+
 public class Lab2 {
     static {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
@@ -12,9 +14,14 @@ public class Lab2 {
         Mat gojoImg = Imgcodecs.imread("src/resources/lab2/gojo.png");
         Mat cubeImg = toGrayScale(Imgcodecs.imread("src/resources/lab2/cube.png"));
         Mat gojoGray = toGrayScale(gojoImg);
-        Mat cubeDithered = floydSteinbergDithering(cubeImg, 7);
+        Mat cubeDithered = floydSteinbergDithering(cubeImg, 3);
         HighGui.imshow("cube", cubeDithered);
         HighGui.waitKey(0);
+
+        for (int i = 1; i < 5; i++){
+            Mat curImg = floydSteinbergDithering(cubeImg, i);
+            Imgcodecs.imwrite("src/results/lab2/cube_" + i + "bpp.png", curImg);
+        }
     }
 
     private static byte[] getUniformPalette(int n){
@@ -31,9 +38,9 @@ public class Lab2 {
 
     private static byte getClosestColorInPalette(byte value, byte[] palette){
         byte result = palette[0];
-        int minDiff = Math.abs(value - result);
+        int minDiff = Math.abs((value & 0xFF) - (result & 0xFF));
         for (var color : palette){
-            int curDiff = Math.abs(color - value);
+            int curDiff = Math.abs((color & 0xFF) - (value & 0xFF));
             if (curDiff < minDiff){
                 minDiff = curDiff;
                 result = color;
@@ -67,11 +74,12 @@ public class Lab2 {
 
         for (int y = 0; y < img.rows(); y++){
             for (int x = 0; x < img.cols(); x++){
-                img.get(y, x, pixel);
+                result.get(y, x, pixel);
                 for (int i = 0; i < colorChannelsCount; i++){
                     int oldValue = pixel[i] & 0xFF;
                     pixel[i] = getClosestColorInPalette(pixel[i], palette);
-                    errs[i] = oldValue - pixel[i] & 0xFF;
+                    result.put(y, x, pixel);
+                    errs[i] = oldValue - (pixel[i] & 0xFF);
                 }
 
                 for (int i = 0; i < ditheringMatrix.length; i++){
@@ -80,9 +88,9 @@ public class Lab2 {
                         int x_ = x + j - 1;
                         if (y_ < img.rows() && x_ >= 0 && x_ < img.cols()){
                             var curPixel = new byte[img.channels()];
-                            img.get(y_, x_, curPixel);
+                            result.get(y_, x_, curPixel);
                             for (int k = 0; k < colorChannelsCount; k++){
-                                curPixel[k] = (byte) (curPixel[k] + (errs[k] * ditheringMatrix[i][j]) >> 4);
+                                curPixel[k] = (byte) Math.min(Math.max((curPixel[k] & 0xFF) + ((errs[k] * ditheringMatrix[i][j]) >> 4), 0), 255);
                             }
                             result.put(y_, x_, curPixel);
                         }
