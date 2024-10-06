@@ -10,7 +10,6 @@ public class Lab2 {
     }
     public static void main(String[] args) {
         Mat gojoImg = Imgcodecs.imread("src/resources/lab2/gojo.png");
-
         Mat gojoGray = toGrayScale(gojoImg);
         HighGui.imshow("Gojo", gojoGray);
         HighGui.waitKey(0);
@@ -18,9 +17,9 @@ public class Lab2 {
 
 
     public static Mat toGrayScale(Mat img){
-        // на вход должно прийти либо 3 либо 4 канальное 8bpp изображение
+        // на вход должно прийти либо 3, либо 4 канальное 8bpp изображение
         // альфа канал, при его наличии, просто игнорируется
-        if (!(img.type() == CvType.CV_8UC3 || img.type() == CvType.CV_8UC4))
+        if (img == null || !(img.type() == CvType.CV_8UC3 || img.type() == CvType.CV_8UC4))
             throw new IllegalArgumentException("На вход пришло не 3 или 4 канальное 8bpp изображение");
         // CV_8UC1 - один канал unsigned char (8bpp)
         var result = new Mat(img.size(), CvType.CV_8UC1);
