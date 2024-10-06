@@ -10,11 +10,89 @@ public class Lab2 {
     }
     public static void main(String[] args) {
         Mat gojoImg = Imgcodecs.imread("src/resources/lab2/gojo.png");
+        Mat cubeImg = toGrayScale(Imgcodecs.imread("src/resources/lab2/cube.png"));
         Mat gojoGray = toGrayScale(gojoImg);
-        HighGui.imshow("Gojo", gojoGray);
+        Mat cubeDithered = floydSteinbergDithering(cubeImg, 7);
+        HighGui.imshow("cube", cubeDithered);
         HighGui.waitKey(0);
     }
 
+    private static byte[] getUniformPalette(int n){
+        int colorsCount = (int) Math.pow(2, n);
+        int step = 255 / (colorsCount - 1);
+
+        var colors = new byte[colorsCount];
+        for (int i = 0; i < colorsCount; i++){
+            colors[i] = (byte) (i * step);
+        }
+        // нужно быть осторожным, так как byte принимает отрицательные значения
+        return colors;
+    }
+
+    private static byte getClosestColorInPalette(byte value, byte[] palette){
+        byte result = palette[0];
+        int minDiff = Math.abs(value - result);
+        for (var color : palette){
+            int curDiff = Math.abs(color - value);
+            if (curDiff < minDiff){
+                minDiff = curDiff;
+                result = color;
+            }
+        }
+        return result;
+    }
+
+    public static Mat floydSteinbergDithering(Mat img, int n){
+        // реализован только для равномерной палитры
+        if (img == null)
+            throw new IllegalArgumentException("На вход пришел null");
+        if (n > 8)
+            throw new IllegalArgumentException("n должно быть меньше 8");
+        if (n == 8)
+            return img;
+
+        var result = img.clone();
+        var palette = getUniformPalette(n);
+
+        // деление на 16 будет уже внутри работы с пикселями побитовым сдвигом
+        var ditheringMatrix = new int[][]{
+                {0, 0, 7},
+                {3, 5, 1},
+        };
+
+        // чтобы функция была универсальной, но при этом не портила альфа канал
+        int colorChannelsCount = Math.min(img.channels(), 3);
+        var pixel = new byte[img.channels()];
+        var errs = new int[colorChannelsCount];
+
+        for (int y = 0; y < img.rows(); y++){
+            for (int x = 0; x < img.cols(); x++){
+                img.get(y, x, pixel);
+                for (int i = 0; i < colorChannelsCount; i++){
+                    int oldValue = pixel[i] & 0xFF;
+                    pixel[i] = getClosestColorInPalette(pixel[i], palette);
+                    errs[i] = oldValue - pixel[i] & 0xFF;
+                }
+
+                for (int i = 0; i < ditheringMatrix.length; i++){
+                    for (int j = 0; j < ditheringMatrix[i].length; j++){
+                        int y_ = y + i;
+                        int x_ = x + j - 1;
+                        if (y_ < img.rows() && x_ >= 0 && x_ < img.cols()){
+                            var curPixel = new byte[img.channels()];
+                            img.get(y_, x_, curPixel);
+                            for (int k = 0; k < colorChannelsCount; k++){
+                                curPixel[k] = (byte) (curPixel[k] + (errs[k] * ditheringMatrix[i][j]) >> 4);
+                            }
+                            result.put(y_, x_, curPixel);
+                        }
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
 
     public static Mat toGrayScale(Mat img){
         // на вход должно прийти либо 3, либо 4 канальное 8bpp изображение
@@ -27,16 +105,16 @@ public class Lab2 {
         var bgr = new byte[img.channels()];
         var gray = new byte[1];
 
-        for (int x = 0; x < img.rows(); x++){
-            for (int y = 0; y < img.cols(); y++){
-                img.get(x, y, bgr);
+        for (int x = 0; x < img.cols(); x++){
+            for (int y = 0; y < img.rows(); y++){
+                img.get(y, x, bgr);
                 // так как в Java нет unsigned типов, при записи значений выше 127 в byte
                 // происходит переполнение. В формуле происходит неявное приведение в int
                 // важно, что gray - массив byte, иначе put сработает некорректно (по тем же причинам)
                 gray[0] = (byte) (0.299 * (bgr[2] & 0xFF) +
                                   0.587 * (bgr[1] & 0xFF) +
                                   0.114 * (bgr[0] & 0xFF));
-                result.put(x, y, gray);
+                result.put(y, x, gray);
             }
         }
         return result;
