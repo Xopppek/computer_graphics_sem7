@@ -13,15 +13,24 @@ public class Lab2 {
     public static void main(String[] args) {
         Mat gojoImg = Imgcodecs.imread("src/resources/lab2/gojo.png");
         Mat cubeImg = toGrayScale(Imgcodecs.imread("src/resources/lab2/cube.png"));
-        Mat gojoGray = toGrayScale(gojoImg);
-        Mat cubeDithered = floydSteinbergDithering(cubeImg, 3);
-        HighGui.imshow("cube", cubeDithered);
-        HighGui.waitKey(0);
+
+        Mat gojoDithered = floydSteinbergDithering(gojoImg, 1);
+        HighGui.imshow("Gojo", gojoDithered);
+
+        //Mat cubeDithered = floydSteinbergDithering(cubeImg, 1);
+        //HighGui.imshow("cube", cubeDithered);
 
         for (int i = 1; i < 5; i++){
-            Mat curImg = floydSteinbergDithering(cubeImg, i);
-            Imgcodecs.imwrite("src/results/lab2/cube_" + i + "bpp.png", curImg);
+            // изображение в градации серого
+            Mat curCubeImg = floydSteinbergDithering(cubeImg, i);
+            Imgcodecs.imwrite("src/results/lab2/floyd_cube_" + i + "bpp.png", curCubeImg);
+
+            // цветное изображение
+            Mat curGojoImg = floydSteinbergDithering(gojoImg, i);
+            Imgcodecs.imwrite("src/results/lab2/floyd_gojo_" + i + "bpp.png", curGojoImg);
         }
+
+        HighGui.waitKey(0);
     }
 
     private static byte[] getUniformPalette(int n){
