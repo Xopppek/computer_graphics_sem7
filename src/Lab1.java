@@ -9,9 +9,9 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.WindowConstants;
 
-public class App {
+public class Lab1 {
     public static void main(String[] args) throws Exception {
-        File resultFile = new File("src/results/result.png");
+        File resultFile = new File("src/results/lab1/result.png");
         BufferedImage gojo = null;
         BufferedImage geometry = null;
         BufferedImage circleMask = null;
@@ -22,20 +22,20 @@ public class App {
         BufferedImage flagMask = null;
         
         try {
-            gojo =  ImageIO.read(new File("src/resources/gojo.png"));
-            geometry = ImageIO.read(new File("src/resources/img2.png")); 
-            circleMask =  ImageIO.read(new File("src/resources/circle_mask.png")); 
-            gojoMask = ImageIO.read(new File("src/resources/mask2.jpg"));
-            birdImg = ImageIO.read(new File("src/resources/bird.jpg"));
-            flagImg = ImageIO.read(new File("src/resources/flag.jpg"));
-            flagMask = ImageIO.read(new File("src/resources/gradient.png"));
+            gojo =  ImageIO.read(new File("src/resources/lab1/gojo.png"));
+            geometry = ImageIO.read(new File("src/resources/lab1/img2.png"));
+            circleMask =  ImageIO.read(new File("src/resources/lab1/circle_mask.png"));
+            gojoMask = ImageIO.read(new File("src/resources/lab1/mask2.jpg"));
+            birdImg = ImageIO.read(new File("src/resources/lab1/bird.jpg"));
+            flagImg = ImageIO.read(new File("src/resources/lab1/flag.jpg"));
+            flagMask = ImageIO.read(new File("src/resources/lab1/gradient.png"));
         } 
         catch (IOException e) { e.printStackTrace(System.out); }
         //result = composeImages(birdImg, flagImg, flagMask);
 
         for (BlendingType type : BlendingType.values()){
             result = composeImages(birdImg, flagImg, flagMask, type);
-            ImageIO.write(result, "png", new File("src/results/result_" + type + ".png"));
+            ImageIO.write(result, "png", new File("src/results/lab1/result_" + type + ".png"));
             //displayImage(result);
         }
 
@@ -44,7 +44,7 @@ public class App {
         //displayImage(result);
 
         result = applyTransparencyMask(toGrayScale(gojo), circleMask);
-        ImageIO.write(result, "png", new File("src/results/halftone.png"));
+        ImageIO.write(result, "png", new File("src/results/lab1/halftone.png"));
         displayImage(result);
     }
 
