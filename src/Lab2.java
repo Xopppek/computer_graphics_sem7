@@ -24,10 +24,14 @@ public class Lab2 {
             // изображение в градации серого
             Mat curCubeImg = floydSteinbergDithering(cubeImg, i);
             Imgcodecs.imwrite("src/results/lab2/floyd_cube_" + i + "bpp.png", curCubeImg);
+            curCubeImg = floydSteinbergDithering(cubeImg, i, true);
+            Imgcodecs.imwrite("src/results/lab2/floyd_dirchange_cube_" + i + "bpp.png", curCubeImg);
 
             // цветное изображение
             Mat curGojoImg = floydSteinbergDithering(gojoImg, i);
             Imgcodecs.imwrite("src/results/lab2/floyd_gojo_" + i + "bpp.png", curGojoImg);
+            curGojoImg = floydSteinbergDithering(gojoImg, i, true);
+            Imgcodecs.imwrite("src/results/lab2/floyd_dirchange_gojo_" + i + "bpp.png", curGojoImg);
         }
 
         HighGui.waitKey(0);
@@ -59,6 +63,10 @@ public class Lab2 {
     }
 
     public static Mat floydSteinbergDithering(Mat img, int n){
+        return floydSteinbergDithering(img, n, false);
+    }
+
+    public static Mat floydSteinbergDithering(Mat img, int n, boolean isChangingDirection){
         // реализован только для равномерной палитры
         if (img == null)
             throw new IllegalArgumentException("На вход пришел null");
@@ -82,7 +90,21 @@ public class Lab2 {
         var errs = new int[colorChannelsCount];
 
         for (int y = 0; y < img.rows(); y++){
-            for (int x = 0; x < img.cols(); x++){
+            int x_end, x_start, dithMatEnd, dithMatStart, dithMatStep;
+            if (y % 2 == 0 & isChangingDirection){
+                x_end = -1;
+                x_start = img.cols() - 1;
+                dithMatEnd = -1;
+                dithMatStart = ditheringMatrix[0].length - 1;
+                dithMatStep = -1;
+            }else{
+                x_end = img.cols();
+                x_start = 0;
+                dithMatEnd = ditheringMatrix[0].length;
+                dithMatStart = 0;
+                dithMatStep = 1;
+            }
+            for (int x = x_start; x < x_end; x++){
                 result.get(y, x, pixel);
                 for (int i = 0; i < colorChannelsCount; i++){
                     int oldValue = pixel[i] & 0xFF;
@@ -92,7 +114,7 @@ public class Lab2 {
                 }
 
                 for (int i = 0; i < ditheringMatrix.length; i++){
-                    for (int j = 0; j < ditheringMatrix[i].length; j++){
+                    for (int j = dithMatStart; j < dithMatEnd; j += dithMatStep){
                         int y_ = y + i;
                         int x_ = x + j - 1;
                         if (y_ < img.rows() && x_ >= 0 && x_ < img.cols()){
