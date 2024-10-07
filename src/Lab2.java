@@ -90,21 +90,23 @@ public class Lab2 {
         var errs = new int[colorChannelsCount];
 
         for (int y = 0; y < img.rows(); y++){
-            int x_end, x_start, dithMatEnd, dithMatStart, dithMatStep;
-            if (y % 2 == 0 & isChangingDirection){
-                x_end = -1;
-                x_start = img.cols() - 1;
+            int xEnd, xStart, xStep, dithMatEnd, dithMatStart, dithMatStep;
+            if ((y % 2 != 0) && isChangingDirection){
+                xEnd = -1;
+                xStart = img.cols() - 1;
+                xStep = -1;
                 dithMatEnd = -1;
                 dithMatStart = ditheringMatrix[0].length - 1;
                 dithMatStep = -1;
             }else{
-                x_end = img.cols();
-                x_start = 0;
+                xEnd = img.cols();
+                xStart = 0;
+                xStep = 1;
                 dithMatEnd = ditheringMatrix[0].length;
                 dithMatStart = 0;
                 dithMatStep = 1;
             }
-            for (int x = x_start; x < x_end; x++){
+            for (int x = xStart; x != xEnd; x += xStep){
                 result.get(y, x, pixel);
                 for (int i = 0; i < colorChannelsCount; i++){
                     int oldValue = pixel[i] & 0xFF;
@@ -114,9 +116,9 @@ public class Lab2 {
                 }
 
                 for (int i = 0; i < ditheringMatrix.length; i++){
-                    for (int j = dithMatStart; j < dithMatEnd; j += dithMatStep){
+                    for (int j = dithMatStart; j != dithMatEnd; j += dithMatStep){
                         int y_ = y + i;
-                        int x_ = x + j - 1;
+                        int x_ = x + (j - 1) * dithMatStep;
                         if (y_ < img.rows() && x_ >= 0 && x_ < img.cols()){
                             var curPixel = new byte[img.channels()];
                             result.get(y_, x_, curPixel);
