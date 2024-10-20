@@ -2,8 +2,6 @@ import org.opencv.core.*;
 import org.opencv.highgui.HighGui;
 import org.opencv.imgproc.Imgproc;
 
-import java.util.Arrays;
-
 public class Lab3 {
     static {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
@@ -18,7 +16,7 @@ public class Lab3 {
         canvas.drawLine(50, 20, 90, 4, Canvas.Color.RED);
         var poly = new Polygon(12, 13, 50, 70, 110, 40, 30, 110, 50, 50);
         //System.out.println(poly.getVertexNum());
-        //System.out.println(Arrays.toString(poly.getPointCoords(1)));
+        //System.out.println(Arrays.toString(poly.getVertexCoords(1)));
         canvas.drawPolygon(poly, Canvas.Color.BLUE);
         System.out.println(poly.hasSelfIntersection());
         System.out.println(poly.isConvex());
@@ -48,11 +46,27 @@ class Polygon{
         isConvex = checkIfConvex();
     }
 
+    public Polygon(int... coords){
+        // arguments should be pairs of integers like (x1, y1, x2, y2, ...)
+        if (coords.length % 2 != 0)
+            throw new IllegalArgumentException("Все координаты должны иметь пары");
+        xCoords = new int[coords.length / 2];
+        yCoords = new int[coords.length / 2];
+        for (int i = 0; i < coords.length; i++) {
+            if (i % 2 == 0)
+                xCoords[i / 2] = coords[i];
+            else
+                yCoords[i / 2] = coords[i];
+        }
+        hasSelfIntersections = checkSelfIntersections();
+        isConvex = checkIfConvex();
+    }
+
     public int getVertexNum(){
         return xCoords.length;
     }
 
-    public int[] getPointCoords(int index){
+    public int[] getVertexCoords(int index){
         if (index >= getVertexNum())
             throw new IllegalArgumentException("Индекс превышает количество вершин");
         return new int[]{xCoords[index], yCoords[index]};
@@ -146,36 +160,20 @@ class Polygon{
         return IntersectType.SKEW_CROSS;
     }
 
-    public Polygon(int... coords){
-        // arguments should be pairs of integers like (x1, y1, x2, y2, ...)
-        if (coords.length % 2 != 0)
-            throw new IllegalArgumentException("Все координаты должны иметь пары");
-        xCoords = new int[coords.length / 2];
-        yCoords = new int[coords.length / 2];
-        for (int i = 0; i < coords.length; i++) {
-            if (i % 2 == 0)
-                xCoords[i / 2] = coords[i];
-            else
-                yCoords[i / 2] = coords[i];
-        }
-        hasSelfIntersections = checkSelfIntersections();
-        isConvex = checkIfConvex();
-    }
-
     private boolean checkSelfIntersections(){
         int n = getVertexNum();
         if (n < 4)
             return false;
 
         for (int i = 0; i < n; i++){
-            int[] a = getPointCoords(i);
-            int[] b = getPointCoords((i + 1) % n);
+            int[] a = getVertexCoords(i);
+            int[] b = getVertexCoords((i + 1) % n);
 
             for (int j = i + 2; j < n; j++){
                 if (i == 0 && j == n - 1)
                     continue;
-                int[] c = getPointCoords(j);
-                int[] d = getPointCoords((j + 1) % n);
+                int[] c = getVertexCoords(j);
+                int[] d = getVertexCoords((j + 1) % n);
                 IntersectType intersectType = intersectSegmentSegment(a[0], a[1],
                                                                       b[0], b[1],
                                                                       c[0], c[1],
@@ -201,9 +199,9 @@ class Polygon{
             // going around the polygon every rotation should have the same orientation
             // either like clock or unlike. So going through all possible pairs of sides
             // we can check if polygon is convex
-            int[] a = getPointCoords(i);
-            int[] b = getPointCoords((i + 1) % n);
-            int[] c = getPointCoords((i + 2) % n);
+            int[] a = getVertexCoords(i);
+            int[] b = getVertexCoords((i + 1) % n);
+            int[] c = getVertexCoords((i + 2) % n);
             int abx = b[0] - a[0];
             int aby = b[1] - a[1];
             int bcx = c[0] - b[0];
@@ -224,7 +222,7 @@ class Canvas{
     // now you can only create canvas with fixed sizes
     // and with BGR 8bpp for channel type
     // it can't be changed after creating
-    private Mat image;
+    private final Mat image;
 
     public enum Color{
         RED  (new byte[]{         0,          0, (byte) 255}),
@@ -342,24 +340,24 @@ class Canvas{
         if (vertexNum == 0)
             return;
         if (vertexNum == 1){
-            drawPoint(poly.getPointCoords(0)[0], poly.getPointCoords(0)[1], bgr);
+            drawPoint(poly.getVertexCoords(0)[0], poly.getVertexCoords(0)[1], bgr);
             return;
         }
         if (vertexNum == 2){
-            int[] coords1 = poly.getPointCoords(0);
-            int[] coords2 = poly.getPointCoords(1);
+            int[] coords1 = poly.getVertexCoords(0);
+            int[] coords2 = poly.getVertexCoords(1);
             drawLine(coords1[0], coords1[1], coords2[0], coords2[1], bgr);
             return;
         }
 
-        int[] coordsPrev = poly.getPointCoords(0);
+        int[] coordsPrev = poly.getVertexCoords(0);
         int[] coordsNext;
         for (int i = 1; i < vertexNum; i++){
-            coordsNext = poly.getPointCoords(i);
+            coordsNext = poly.getVertexCoords(i);
             drawLine(coordsPrev[0], coordsPrev[1], coordsNext[0], coordsNext[1], bgr);
             coordsPrev = coordsNext;
         }
-        coordsNext = poly.getPointCoords(0);
+        coordsNext = poly.getVertexCoords(0);
         drawLine(coordsPrev[0], coordsPrev[1], coordsNext[0], coordsNext[1], bgr);
     }
 }
