@@ -2,6 +2,8 @@ import org.opencv.core.*;
 import org.opencv.highgui.HighGui;
 import org.opencv.imgproc.Imgproc;
 
+import java.util.Arrays;
+
 public class Lab3 {
     static {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
@@ -14,15 +16,54 @@ public class Lab3 {
         canvas.drawLine(80, 10, 10, 90, Canvas.Color.BLUE);
         canvas.drawLine(10, 90, 80, 10, Canvas.Color.BLACK);
         canvas.drawLine(50, 20, 90, 4, Canvas.Color.RED);
+        var poly = new Polygon(12, 13, 50, 70, 110, 40, 30, 110);
+        System.out.println(poly.getVertexNum());
+        //System.out.println(Arrays.toString(poly.getPointCoords(1)));
+        canvas.drawPolygon(poly, Canvas.Color.BLUE);
 
 
         // before drawing a window I resize image, so I can see something on my monitor
         // Only unchanged pictures will go to result files
         Mat picture = canvas.getImage();
         Mat resizedPicture = new Mat();
-        Imgproc.resize(picture, resizedPicture, new Size(picture.cols() * 4, picture.height() * 4), 0, 0, Imgproc.INTER_NEAREST);
+        Imgproc.resize(picture, resizedPicture, new Size(picture.cols() * 4,
+                       picture.height() * 4), 0, 0, Imgproc.INTER_NEAREST);
         HighGui.imshow("Canvas", resizedPicture);
         HighGui.waitKey(0);
+    }
+}
+class Polygon{
+    private final int[] xCoords;
+    private final int[] yCoords;
+
+    public Polygon(int... coords){
+        // arguments should be pairs of integers like (x1, y1, x2, y2, ...)
+        if (coords.length % 2 != 0)
+            throw new IllegalArgumentException("Все координаты должны иметь пары");
+        xCoords = new int[coords.length / 2];
+        yCoords = new int[coords.length / 2];
+        for (int i = 0; i < coords.length; i++){
+            if (i % 2 == 0)
+                xCoords[i / 2] = coords[i];
+            else
+                yCoords[i / 2] = coords[i];
+        }
+    }
+
+    public Polygon(int[] xCoords, int[] yCoords){
+        // I use clone so it is not possible to change arrays after creating Polygon
+        this.xCoords = xCoords.clone();
+        this.yCoords = yCoords.clone();
+    }
+
+    public int getVertexNum(){
+        return xCoords.length;
+    }
+
+    public int[] getPointCoords(int index){
+        if (index >= getVertexNum())
+            throw new IllegalArgumentException("Индекс превышает количество вершин");
+        return new int[]{xCoords[index], yCoords[index]};
     }
 }
 
@@ -138,4 +179,34 @@ class Canvas{
         }
     }
 
+    public void drawPolygon(Polygon poly, Color color){
+        drawPolygon(poly, color.getBgr());
+    }
+
+    public void drawPolygon(Polygon poly, byte[] bgr){
+        int vertexNum = poly.getVertexNum();
+
+        if (vertexNum == 0)
+            return;
+        if (vertexNum == 1){
+            drawPoint(poly.getPointCoords(0)[0], poly.getPointCoords(0)[1], bgr);
+            return;
+        }
+        if (vertexNum == 2){
+            int[] coords1 = poly.getPointCoords(0);
+            int[] coords2 = poly.getPointCoords(1);
+            drawLine(coords1[0], coords1[1], coords2[0], coords2[1], bgr);
+            return;
+        }
+
+        int[] coordsPrev = poly.getPointCoords(0);
+        int[] coordsNext;
+        for (int i = 1; i < vertexNum; i++){
+            coordsNext = poly.getPointCoords(i);
+            drawLine(coordsPrev[0], coordsPrev[1], coordsNext[0], coordsNext[1], bgr);
+            coordsPrev = coordsNext;
+        }
+        coordsNext = poly.getPointCoords(0);
+        drawLine(coordsPrev[0], coordsPrev[1], coordsNext[0], coordsNext[1], bgr);
+    }
 }
