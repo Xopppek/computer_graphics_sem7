@@ -16,10 +16,11 @@ public class Lab3 {
         canvas.drawLine(80, 10, 10, 90, Canvas.Color.BLUE);
         canvas.drawLine(10, 90, 80, 10, Canvas.Color.BLACK);
         canvas.drawLine(50, 20, 90, 4, Canvas.Color.RED);
-        var poly = new Polygon(12, 13, 50, 70, 110, 40, 30, 110);
-        System.out.println(poly.getVertexNum());
+        var poly = new Polygon(12, 13, 50, 70, 110, 40, 30, 110, 50, 50);
+        //System.out.println(poly.getVertexNum());
         //System.out.println(Arrays.toString(poly.getPointCoords(1)));
         canvas.drawPolygon(poly, Canvas.Color.BLUE);
+        System.out.println(poly.hasSelfIntersection());
 
 
         // before drawing a window I resize image, so I can see something on my monitor
@@ -35,6 +36,87 @@ public class Lab3 {
 class Polygon{
     private final int[] xCoords;
     private final int[] yCoords;
+    private final boolean hasSelfIntersections;
+
+    private enum CLPointType{
+        LEFT,
+        RIGHT,
+        BEYOND,
+        BEHIND,
+        BETWEEN,
+        ORIGIN,
+        DESTINATION,
+    }
+
+    private CLPointType pointSegmentClassify(double x1, double y1,
+                                             double x2, double y2,
+                                             double x, double y){
+        double ax = x2 - x1;
+        double ay = y2 - y1;
+        double bx = x - x1;
+        double by = y - y1;
+        double s = ax * by - bx * ay;
+        if (s > 0)
+            return CLPointType.LEFT;
+        if (s < 0)
+            return CLPointType.RIGHT;
+        if ((ax * bx < 0) || (ay * by < 0))
+            return CLPointType.BEHIND;
+        if ((ax * ax + ay * ay) < (bx * bx + by * by))
+            return CLPointType.BEYOND;
+        if (x1 == x && y1 == y)
+            return CLPointType.ORIGIN;
+        if (x2 == x && y2 == y)
+            return CLPointType.DESTINATION;
+        return CLPointType.BETWEEN;
+    }
+
+    private enum IntersectType{
+        SAME,
+        PARALLEL,
+        SKEW,
+        SKEW_CROSS,
+        SKEW_NO_CROSS,
+    }
+
+    private IntersectType intersectSegmentLine(double ax, double ay,
+                                               double bx, double by,
+                                               double cx, double cy,
+                                               double dx, double dy,
+                                               double[] t){
+        if (t.length != 1)
+            throw new IllegalArgumentException("t[] должен быть массивом из одного элемента");
+        double nx = dy - cy;
+        double ny = cx - dx;
+        CLPointType clPointType;
+        double denom = nx * (bx - ax) + ny * (by - ay);
+        if (denom == 0){
+            clPointType = pointSegmentClassify(cx, cy, dx, dy, ax, ay);
+            if (clPointType == CLPointType.LEFT || clPointType == CLPointType.RIGHT)
+                return IntersectType.PARALLEL;
+            else
+                return IntersectType.SAME;
+        }
+        double num = nx * (ax - cx) + ny * (ay - cy);
+        t[0] = -num/denom;
+        return IntersectType.SKEW;
+    }
+
+    private IntersectType intersectSegmentSegment(double ax, double ay,
+                                                  double bx, double by,
+                                                  double cx, double cy,
+                                                  double dx, double dy){
+        double[] tab = new double[1], tcd = new double[1];
+        IntersectType intersectType = intersectSegmentLine(ax, ay, bx, by, cx, cy, dx, dy, tab);
+        if (intersectType == IntersectType.SAME || intersectType == IntersectType.PARALLEL)
+            return intersectType;
+        if ((tab[0] < 0) || (tab[0] > 1))
+            return IntersectType.SKEW_NO_CROSS;
+        intersectSegmentLine(cx, cy, dx, dy, ax, ay, bx, by, tcd);
+        if ((tcd[0] < 0) || (tcd[0] > 1))
+            return IntersectType.SKEW_NO_CROSS;
+        return IntersectType.SKEW_CROSS;
+    }
 
     public Polygon(int... coords){
         // arguments should be pairs of integers like (x1, y1, x2, y2, ...)
@@ -42,18 +124,20 @@ class Polygon{
             throw new IllegalArgumentException("Все координаты должны иметь пары");
         xCoords = new int[coords.length / 2];
         yCoords = new int[coords.length / 2];
-        for (int i = 0; i < coords.length; i++){
+        for (int i = 0; i < coords.length; i++) {
             if (i % 2 == 0)
                 xCoords[i / 2] = coords[i];
             else
                 yCoords[i / 2] = coords[i];
         }
+        hasSelfIntersections = checkSelfIntersections();
     }
 
     public Polygon(int[] xCoords, int[] yCoords){
         // I use clone so it is not possible to change arrays after creating Polygon
         this.xCoords = xCoords.clone();
         this.yCoords = yCoords.clone();
+        hasSelfIntersections = checkSelfIntersections();
     }
 
     public int getVertexNum(){
@@ -64,6 +148,36 @@ class Polygon{
         if (index >= getVertexNum())
             throw new IllegalArgumentException("Индекс превышает количество вершин");
         return new int[]{xCoords[index], yCoords[index]};
+    }
+
+    private boolean checkSelfIntersections(){
+        int n = getVertexNum();
+        if (n < 4)
+            return false;
+
+        for (int i = 0; i < n; i++){
+            int[] a = getPointCoords(i);
+            int[] b = getPointCoords((i + 1) % n);
+
+            for (int j = i + 2; j < n; j++){
+                if (i == 0 && j == n - 1)
+                    continue;
+                int[] c = getPointCoords(j);
+                int[] d = getPointCoords((j + 1) % n);
+                IntersectType intersectType = intersectSegmentSegment(a[0], a[1],
+                                                                      b[0], b[1],
+                                                                      c[0], c[1],
+                                                                      d[0], d[1]);
+                if (intersectType == IntersectType.SKEW_CROSS)
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    public boolean hasSelfIntersection(){
+        return hasSelfIntersections;
     }
 }
 
