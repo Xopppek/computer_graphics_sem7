@@ -9,10 +9,11 @@ public class Lab3 {
 
     public static void main(String[] args) {
         var canvas = new Canvas(120, 120);
-        canvas.drawPoint(14, 50, Canvas.Color.BLACK);
+        //canvas.drawPoint(14, 50, Canvas.Color.BLACK);
         canvas.drawLine(10, 10, 80, 10, Canvas.Color.GREEN);
         canvas.drawLine(80, 10, 10, 90, Canvas.Color.BLUE);
-        canvas.drawLine(70, 90, 30, 60, Canvas.Color.RED);
+        canvas.drawLine(10, 90, 80, 10, Canvas.Color.BLACK);
+        canvas.drawLine(50, 20, 90, 4, Canvas.Color.RED);
 
 
         // before drawing a window I resize image, so I can see something on my monitor
@@ -81,31 +82,17 @@ class Canvas{
     }
 
     public void drawLine(int x1, int y1, int x2, int y2, byte[] bgr){
-        int x = x1;
-        int y = y1;
-        int dx = x2 - x1;
-        int dy = y2 - y1;
-        int ix, iy, e, i;
-        if (dx > 0) {
-            ix = 1;
-        } else if (dx < 0) {
-            ix = -1;
-            dx = -dx;
-        } else {
-            ix = 0;
-        }
-        if (dy > 0) {
-            iy = 1;
-        } else if (dy < 0) {
-            iy = -1;
-            dy = -dy;
-        } else {
-            iy = 0;
-        }
+        int x = x1, y = y1;
+        int dx = x2 - x1, dy = y2 - y1;
+        int e, i;
+        int ix = Integer.compare(dx, 0);
+        int iy = Integer.compare(dy, 0);
+        dx = Math.abs(dx);
+        dy = Math.abs(dy);
         if (dx >= dy) {
             e = 2 * dy - dx;
             if (iy >= 0) {
-                for (i = 0; i < dx; i++) {
+                for (i = 0; i <= dx; i++) {
                     drawPoint(x, y, bgr);
                     if (e >= 0) {
                         y += iy;
@@ -115,7 +102,7 @@ class Canvas{
                     e += dy * 2;
                 }
             } else {
-                for (i = 0; i < dx; i++) {
+                for (i = 0; i <= dx; i++) {
                     drawPoint(x, y, bgr);
                     if (e > 0) {
                         y += iy;
@@ -128,7 +115,7 @@ class Canvas{
         } else {
             e = 2 * dx - dy;
             if (ix >= 0) {
-                for (i = 0; i < dy; i++) {
+                for (i = 0; i <= dy; i++) {
                     drawPoint(x, y, bgr);
                     if (e >= 0) {
                         x += ix;
@@ -138,7 +125,7 @@ class Canvas{
                     e += dx * 2;
                 }
             } else {
-                for (i = 0; i < dy; i++) {
+                for (i = 0; i <= dy; i++) {
                     drawPoint(x, y, bgr);
                     if (e > 0) {
                         x += ix;
