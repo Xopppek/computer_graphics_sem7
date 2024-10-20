@@ -40,6 +40,32 @@ class Polygon{
     private final boolean hasSelfIntersections;
     private final boolean isConvex;
 
+    public Polygon(int[] xCoords, int[] yCoords){
+        // I use clone so it is not possible to change arrays after creating Polygon
+        this.xCoords = xCoords.clone();
+        this.yCoords = yCoords.clone();
+        hasSelfIntersections = checkSelfIntersections();
+        isConvex = checkIfConvex();
+    }
+
+    public int getVertexNum(){
+        return xCoords.length;
+    }
+
+    public int[] getPointCoords(int index){
+        if (index >= getVertexNum())
+            throw new IllegalArgumentException("Индекс превышает количество вершин");
+        return new int[]{xCoords[index], yCoords[index]};
+    }
+
+    public boolean isConvex(){
+        return isConvex;
+    }
+
+    public boolean hasSelfIntersection(){
+        return hasSelfIntersections;
+    }
+
     private enum CLPointType{
         LEFT,
         RIGHT,
@@ -136,24 +162,6 @@ class Polygon{
         isConvex = checkIfConvex();
     }
 
-    public Polygon(int[] xCoords, int[] yCoords){
-        // I use clone so it is not possible to change arrays after creating Polygon
-        this.xCoords = xCoords.clone();
-        this.yCoords = yCoords.clone();
-        hasSelfIntersections = checkSelfIntersections();
-        isConvex = checkIfConvex();
-    }
-
-    public int getVertexNum(){
-        return xCoords.length;
-    }
-
-    public int[] getPointCoords(int index){
-        if (index >= getVertexNum())
-            throw new IllegalArgumentException("Индекс превышает количество вершин");
-        return new int[]{xCoords[index], yCoords[index]};
-    }
-
     private boolean checkSelfIntersections(){
         int n = getVertexNum();
         if (n < 4)
@@ -209,14 +217,6 @@ class Polygon{
                 return false;
         }
         return true;
-    }
-
-    public boolean isConvex(){
-        return isConvex;
-    }
-
-    public boolean hasSelfIntersection(){
-        return hasSelfIntersections;
     }
 }
 
