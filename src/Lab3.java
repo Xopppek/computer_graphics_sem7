@@ -1,8 +1,6 @@
-import org.opencv.core.Core;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.core.Scalar;
+import org.opencv.core.*;
 import org.opencv.highgui.HighGui;
+import org.opencv.imgproc.Imgproc;
 
 public class Lab3 {
     static {
@@ -10,9 +8,19 @@ public class Lab3 {
     }
 
     public static void main(String[] args) {
-        var canvas = new Canvas(1024, 800);
+        var canvas = new Canvas(120, 120);
         canvas.drawPoint(14, 50, Canvas.Color.BLACK);
-        HighGui.imshow("Canvas", canvas.getImage());
+        canvas.drawLine(10, 10, 80, 10, Canvas.Color.GREEN);
+        canvas.drawLine(80, 10, 10, 90, Canvas.Color.BLUE);
+        canvas.drawLine(70, 90, 30, 60, Canvas.Color.RED);
+
+
+        // before drawing a window I resize image, so I can see something on my monitor
+        // Only unchanged pictures will go to result files
+        Mat picture = canvas.getImage();
+        Mat resizedPicture = new Mat();
+        Imgproc.resize(picture, resizedPicture, new Size(picture.cols() * 4, picture.height() * 4), 0, 0, Imgproc.INTER_NEAREST);
+        HighGui.imshow("Canvas", resizedPicture);
         HighGui.waitKey(0);
     }
 }
@@ -24,10 +32,10 @@ class Canvas{
     private Mat image;
 
     public enum Color{
-        RED(new byte[]{(byte) 255, 0, 0}),
-        BLUE(new byte[]{0, 0, (byte) 255}),
-        GREEN(new byte[]{0, (byte) 255, 0}),
-        BLACK(new byte[]{0, 0, 0});
+        RED  (new byte[]{         0,          0, (byte) 255}),
+        BLUE (new byte[]{(byte) 255,          0,          0}),
+        GREEN(new byte[]{         0, (byte) 255,          0}),
+        BLACK(new byte[]{         0,          0,          0});
 
         private final byte[] bgr;
         Color(byte[] bgr){
@@ -66,6 +74,81 @@ class Canvas{
 
     public void drawPoint(int x, int y, byte[] bgr){
         image.put(y, x, bgr);
+    }
+
+    public void drawLine(int x1, int y1, int x2, int y2, Color color){
+        drawLine(x1, y1, x2, y2, color.getBgr());
+    }
+
+    public void drawLine(int x1, int y1, int x2, int y2, byte[] bgr){
+        int x = x1;
+        int y = y1;
+        int dx = x2 - x1;
+        int dy = y2 - y1;
+        int ix, iy, e, i;
+        if (dx > 0) {
+            ix = 1;
+        } else if (dx < 0) {
+            ix = -1;
+            dx = -dx;
+        } else {
+            ix = 0;
+        }
+        if (dy > 0) {
+            iy = 1;
+        } else if (dy < 0) {
+            iy = -1;
+            dy = -dy;
+        } else {
+            iy = 0;
+        }
+        if (dx >= dy) {
+            e = 2 * dy - dx;
+            if (iy >= 0) {
+                for (i = 0; i < dx; i++) {
+                    drawPoint(x, y, bgr);
+                    if (e >= 0) {
+                        y += iy;
+                        e -= 2 * dx;
+                    }
+                    x += ix;
+                    e += dy * 2;
+                }
+            } else {
+                for (i = 0; i < dx; i++) {
+                    drawPoint(x, y, bgr);
+                    if (e > 0) {
+                        y += iy;
+                        e -= 2 * dx;
+                    }
+                    x += ix;
+                    e += dy * 2;
+                }
+            }
+        } else {
+            e = 2 * dx - dy;
+            if (ix >= 0) {
+                for (i = 0; i < dy; i++) {
+                    drawPoint(x, y, bgr);
+                    if (e >= 0) {
+                        x += ix;
+                        e -= 2 * dy;
+                    }
+                    y += iy;
+                    e += dx * 2;
+                }
+            } else {
+                for (i = 0; i < dy; i++) {
+                    drawPoint(x, y, bgr);
+                    if (e > 0) {
+                        x += ix;
+                        e -= 2 * dy;
+                    }
+                    y += iy;
+                    e += dx * 2;
+                }
+            }
+        }
     }
 
 }
