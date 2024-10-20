@@ -21,6 +21,7 @@ public class Lab3 {
         //System.out.println(Arrays.toString(poly.getPointCoords(1)));
         canvas.drawPolygon(poly, Canvas.Color.BLUE);
         System.out.println(poly.hasSelfIntersection());
+        System.out.println(poly.isConvex());
 
 
         // before drawing a window I resize image, so I can see something on my monitor
@@ -37,6 +38,7 @@ class Polygon{
     private final int[] xCoords;
     private final int[] yCoords;
     private final boolean hasSelfIntersections;
+    private final boolean isConvex;
 
     private enum CLPointType{
         LEFT,
@@ -131,6 +133,7 @@ class Polygon{
                 yCoords[i / 2] = coords[i];
         }
         hasSelfIntersections = checkSelfIntersections();
+        isConvex = checkIfConvex();
     }
 
     public Polygon(int[] xCoords, int[] yCoords){
@@ -138,6 +141,7 @@ class Polygon{
         this.xCoords = xCoords.clone();
         this.yCoords = yCoords.clone();
         hasSelfIntersections = checkSelfIntersections();
+        isConvex = checkIfConvex();
     }
 
     public int getVertexNum(){
@@ -174,6 +178,41 @@ class Polygon{
         }
 
         return false;
+    }
+
+    private boolean checkIfConvex(){
+        int n = getVertexNum();
+        if (n < 3)
+            return true;
+
+        boolean hasPositiveRotation = false;
+        boolean hasNegativeRotation = false;
+
+        for (int i = 0; i < n; i++){
+            // a, b, c -- 3 vertices in a row
+            // going around the polygon every rotation should have the same orientation
+            // either like clock or unlike. So going through all possible pairs of sides
+            // we can check if polygon is convex
+            int[] a = getPointCoords(i);
+            int[] b = getPointCoords((i + 1) % n);
+            int[] c = getPointCoords((i + 2) % n);
+            int abx = b[0] - a[0];
+            int aby = b[1] - a[1];
+            int bcx = c[0] - b[0];
+            int bcy = c[1] - b[1];
+            int product = abx * bcy - aby - bcx;
+            if (product > 0)
+                hasPositiveRotation = true;
+            if (product < 0)
+                hasNegativeRotation = true;
+            if (hasNegativeRotation && hasPositiveRotation)
+                return false;
+        }
+        return true;
+    }
+
+    public boolean isConvex(){
+        return isConvex;
     }
 
     public boolean hasSelfIntersection(){
