@@ -9,19 +9,17 @@ public class Lab3 {
 
     public static void main(String[] args) {
         var canvas = new Canvas(120, 120);
-        //canvas.drawPoint(14, 50, Canvas.Color.BLACK);
         canvas.drawLine(10, 10, 80, 10, Canvas.Color.GREEN);
         canvas.drawLine(80, 10, 10, 90, Canvas.Color.BLUE);
         canvas.drawLine(10, 90, 80, 10, Canvas.Color.BLACK);
         canvas.drawLine(50, 20, 90, 4, Canvas.Color.RED);
-        var poly = new Polygon(12, 13, 50, 70, 110, 40, 30, 110, 50, 50);
-        //System.out.println(poly.getVertexNum());
-        //System.out.println(Arrays.toString(poly.getVertexCoords(1)));
+        //var poly = new Polygon(12, 13, 50, 70, 110, 40, 30, 110, 50, 50);
+        var poly = new Polygon(12, 13, 50, 70, 110, 40);
         canvas.drawPolygon(poly, Canvas.Color.BLUE);
         System.out.println(poly.hasSelfIntersection());
         System.out.println(poly.isConvex());
-
-
+        canvas.fillPolygonEOMode(poly, Canvas.Color.BLUE);
+        
         // before drawing a window I resize image, so I can see something on my monitor
         // Only unchanged pictures will go to result files
         Mat picture = canvas.getImage();
@@ -32,6 +30,7 @@ public class Lab3 {
         HighGui.waitKey(0);
     }
 }
+
 class Polygon{
     private final int[] xCoords;
     private final int[] yCoords;
@@ -90,9 +89,9 @@ class Polygon{
         DESTINATION,
     }
 
-    private CLPointType pointSegmentClassify(double x1, double y1,
-                                             double x2, double y2,
-                                             double x, double y){
+    private static CLPointType pointSegmentClassify(double x1, double y1,
+                                                    double x2, double y2,
+                                                    double x, double y){
         double ax = x2 - x1;
         double ay = y2 - y1;
         double bx = x - x1;
@@ -121,11 +120,11 @@ class Polygon{
         SKEW_NO_CROSS,
     }
 
-    private IntersectType intersectSegmentLine(double ax, double ay,
-                                               double bx, double by,
-                                               double cx, double cy,
-                                               double dx, double dy,
-                                               double[] t){
+    private static IntersectType intersectSegmentLine(double ax, double ay,
+                                                      double bx, double by,
+                                                      double cx, double cy,
+                                                      double dx, double dy,
+                                                      double[] t){
         if (t.length != 1)
             throw new IllegalArgumentException("t[] должен быть массивом из одного элемента");
         double nx = dy - cy;
@@ -144,10 +143,10 @@ class Polygon{
         return IntersectType.SKEW;
     }
 
-    private IntersectType intersectSegmentSegment(double ax, double ay,
-                                                  double bx, double by,
-                                                  double cx, double cy,
-                                                  double dx, double dy){
+    private static IntersectType intersectSegmentSegment(double ax, double ay,
+                                                         double bx, double by,
+                                                         double cx, double cy,
+                                                         double dx, double dy){
         double[] tab = new double[1], tcd = new double[1];
         IntersectType intersectType = intersectSegmentLine(ax, ay, bx, by, cx, cy, dx, dy, tab);
         if (intersectType == IntersectType.SAME || intersectType == IntersectType.PARALLEL)
@@ -158,6 +157,58 @@ class Polygon{
         if ((tcd[0] < 0) || (tcd[0] > 1))
             return IntersectType.SKEW_NO_CROSS;
         return IntersectType.SKEW_CROSS;
+    }
+
+    private enum EType {
+        TOUCHICNG,
+        CROSS_LEFT,
+        CROSS_RIGHT,
+        INESSENTIAL,
+    }
+
+    private static EType edgeRayClassify(double ax, double ay, double bx, double by, double rayStartX, double rayStartY){
+        switch (pointSegmentClassify(ax, ay, bx, by, rayStartX, rayStartY)) {
+            case LEFT:
+                if (rayStartY > ay && rayStartY <= by)
+                    return EType.CROSS_LEFT;
+                else
+                    return EType.INESSENTIAL;
+            case RIGHT:
+                if (rayStartY > by && rayStartY <= ay)
+                    return EType.CROSS_RIGHT;
+                else
+                    return EType.INESSENTIAL;
+            case BETWEEN:
+            case BEYOND:
+            case DESTINATION:
+                return EType.TOUCHICNG;
+            default:
+                return EType.INESSENTIAL;
+        }
+    }
+
+    public enum PType {
+        INSIDE,
+        OUTSIDE,
+    }
+
+    public PType pointInPolygonEOMode(double x, double y){
+        int n = getVertexNum();
+        int param = 0;
+        for (int i = 0; i < n; i++){
+            int[] aCoords = getVertexCoords(i);
+            int[] bCoords = getVertexCoords((i + 1) % n);
+            switch (edgeRayClassify(aCoords[0], aCoords[1], bCoords[0], bCoords[1], x, y)){
+                case TOUCHICNG:
+                    return PType.INSIDE;
+                case CROSS_LEFT:
+                case CROSS_RIGHT:
+                    param = 1 - param;
+            }
+        }
+        if (param == 1)
+            return PType.INSIDE;
+        return PType.OUTSIDE;
     }
 
     private boolean checkSelfIntersections(){
@@ -359,5 +410,21 @@ class Canvas{
         }
         coordsNext = poly.getVertexCoords(0);
         drawLine(coordsPrev[0], coordsPrev[1], coordsNext[0], coordsNext[1], bgr);
+    }
+
+    public void fillPolygonEOMode(Polygon poly, Color color){
+        fillPolygonEOMode(poly, color.getBgr());
+    }
+
+    public void fillPolygonEOMode(Polygon poly, byte[] bgr){
+        int minX = 0, minY = 0, maxX = getWidth() - 1, maxY = getHeight() - 1;
+
+        for (int x = minX; x <= maxX; x++){
+            for (int y = minY; y <= maxY; y++){
+                if (poly.pointInPolygonEOMode(x, y) == Polygon.PType.INSIDE)
+                    image.put(y, x, bgr);
+            }
+        }
+
     }
 }
