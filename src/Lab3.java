@@ -1,38 +1,73 @@
 import org.opencv.core.*;
 import org.opencv.highgui.HighGui;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.Arrays;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 public class Lab3 {
     static {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
     }
 
+    static int canvasId = 0;
+    static String savePath = "src/results/lab3/";
+
     public static void main(String[] args) {
-        var canvas = new Canvas(120, 120);
-        canvas.drawLine(10, 10, 80, 10, Canvas.Color.GREEN);
-        canvas.drawLine(80, 10, 10, 90, Canvas.Color.BLUE);
-        canvas.drawLine(10, 90, 80, 10, Canvas.Color.BLACK);
-        canvas.drawLine(50, 20, 90, 4, Canvas.Color.RED);
-        var poly = new Polygon(12, 13, 50, 70, 110, 40, 30, 110, 50, 50);
-        //var poly = new Polygon(12, 13, 50, 70, 110, 40);
-        canvas.drawPolygon(poly, Canvas.Color.BLUE);
-        System.out.println(poly.hasSelfIntersection());
-        System.out.println(poly.isConvex());
-        canvas.fillPolygonNZWMode(poly, Canvas.Color.BLUE);
-        canvas.fillPolygonEOMode(poly, Canvas.Color.BLACK);
-        
+        var canvasLines = new Canvas(120, 120);
+        canvasLines.drawLine(10, 80, 20, 15, Canvas.Color.BLACK);
+        canvasLines.drawLine(20 + 2, 15, 10 + 2, 80, Canvas.Color.BLACK);
+        canvasLines.drawLine(30, 80, 70, 90, Canvas.Color.BLUE);
+        canvasLines.drawLine(70, 90 + 2, 30, 80 + 2, Canvas.Color.BLUE);
+        canvasLines.drawLine(50, 50, 100, 100, Canvas.Color.RED);
+        canvasLines.drawLine(100 + 2, 100, 50 + 2, 50, Canvas.Color.RED);
+        canvasLines.drawLine(50, 20, 90, 40, Canvas.Color.GREEN);
+        canvasLines.drawLine(90, 40 + 2, 50, 20 + 2, Canvas.Color.GREEN);
+
+        displayImage(canvasLines.getImage(), 4, "Lines");
+        Imgcodecs.imwrite(savePath + "lines.png", canvasLines.getImage());
+
+        var canvasPolygon = new Canvas(120, 120);
+        var starPolygon = new Polygon(10, 40, 110, 40, 30, 110, 60, 10, 90, 110);
+        canvasPolygon.drawPolygon(starPolygon, Canvas.Color.BLUE);
+        displayImage(canvasPolygon.getImage(), 4, "Star");
+        Imgcodecs.imwrite(savePath + "star.png", canvasPolygon.getImage());
+
+        var canvasFilledEO = new Canvas(120, 120);
+        canvasFilledEO.drawPolygon(starPolygon, Canvas.Color.BLACK);
+        canvasFilledEO.fillPolygonEOMode(starPolygon, Canvas.Color.GREEN);
+        displayImage(canvasFilledEO.getImage(), 4, "Filled EO");
+        Imgcodecs.imwrite(savePath + "filledEO.png", canvasFilledEO.getImage());
+
+        var canvasFilledNZW = new Canvas(120, 120);
+        canvasFilledNZW.drawPolygon(starPolygon, Canvas.Color.BLACK);
+        canvasFilledNZW.fillPolygonNZWMode(starPolygon, Canvas.Color.GREEN);
+        displayImage(canvasFilledNZW.getImage(), 4, "Filled NZW");
+        Imgcodecs.imwrite(savePath + "filledNZW.png", canvasFilledNZW.getImage());
+
+        HighGui.waitKey(0);
+    }
+
+    public static void displayImage(Mat image, int scalingFactor){
+        displayImage(image, scalingFactor, null);
+    }
+
+    public static void displayImage(Mat image, int scalingFactor, String winname){
         // before drawing a window I resize image, so I can see something on my monitor
         // Only unchanged pictures will go to result files
-        Mat picture = canvas.getImage();
-        Mat resizedPicture = new Mat();
-        Imgproc.resize(picture, resizedPicture, new Size(picture.cols() * 4,
-                       picture.height() * 4), 0, 0, Imgproc.INTER_NEAREST);
-        HighGui.imshow("Canvas", resizedPicture);
-        HighGui.waitKey(0);
+        if (winname == null){
+            winname = getWinname();
+        }
+        Mat resizedImage = new Mat();
+        Imgproc.resize(image, resizedImage, new Size(image.cols() * scalingFactor,
+                                                     image.height() * scalingFactor),
+                                                     0, 0, Imgproc.INTER_NEAREST);
+        HighGui.imshow(winname, resizedImage);
+    }
+
+    private static String getWinname(){
+        return "Canvas" + ++canvasId;
     }
 }
 
