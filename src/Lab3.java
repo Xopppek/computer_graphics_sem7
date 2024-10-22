@@ -229,12 +229,7 @@ class Polygon{
         }
     }
 
-    public enum PType {
-        INSIDE,
-        OUTSIDE,
-    }
-
-    public PType pointInPolygonEOMode(double x, double y){
+    public boolean isPointInPolygonEOMode(double x, double y){
         int n = getVertexNum();
         int param = 0;
         for (int i = 0; i < n; i++){
@@ -242,15 +237,15 @@ class Polygon{
             int[] bCoords = getVertexCoords((i + 1) % n);
             switch (edgeRayClassify(aCoords[0], aCoords[1], bCoords[0], bCoords[1], x, y)){
                 case TOUCHING:
-                    return PType.INSIDE;
+                    return true;
                 case CROSS_LEFT:
                 case CROSS_RIGHT:
                     param = 1 - param;
             }
         }
         if (param == 1)
-            return PType.INSIDE;
-        return PType.OUTSIDE;
+            return true;
+        return false;
     }
 
     private boolean checkSelfIntersections(){
@@ -466,7 +461,7 @@ class Canvas{
 
         for (int x = minX; x <= maxX; x++){
             for (int y = minY; y <= maxY; y++){
-                if (poly.pointInPolygonEOMode(x, y) == Polygon.PType.INSIDE)
+                if (poly.isPointInPolygonEOMode(x, y))
                     image.put(y, x, bgr);
             }
         }
