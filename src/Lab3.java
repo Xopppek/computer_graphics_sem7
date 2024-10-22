@@ -13,8 +13,8 @@ public class Lab3 {
         canvas.drawLine(80, 10, 10, 90, Canvas.Color.BLUE);
         canvas.drawLine(10, 90, 80, 10, Canvas.Color.BLACK);
         canvas.drawLine(50, 20, 90, 4, Canvas.Color.RED);
-        //var poly = new Polygon(12, 13, 50, 70, 110, 40, 30, 110, 50, 50);
-        var poly = new Polygon(12, 13, 50, 70, 110, 40);
+        var poly = new Polygon(12, 13, 50, 70, 110, 40, 30, 110, 50, 50);
+        //var poly = new Polygon(12, 13, 50, 70, 110, 40);
         canvas.drawPolygon(poly, Canvas.Color.BLUE);
         System.out.println(poly.hasSelfIntersection());
         System.out.println(poly.isConvex());
@@ -69,6 +69,50 @@ class Polygon{
         if (index >= getVertexNum())
             throw new IllegalArgumentException("Индекс превышает количество вершин");
         return new int[]{xCoords[index], yCoords[index]};
+    }
+
+    public int getMaxX(){
+        if (getVertexNum() == 0)
+            throw new IllegalStateException("В полигоне нет ни одной точки");
+        int result = getVertexCoords(0)[0];
+        for (int i = 1; i < getVertexNum(); i++){
+            if (result < getVertexCoords(i)[0])
+                result = getVertexCoords(i)[0];
+        }
+        return result;
+    }
+
+    public int getMinX(){
+        if (getVertexNum() == 0)
+            throw new IllegalStateException("В полигоне нет ни одной точки");
+        int result = getVertexCoords(0)[0];
+        for (int i = 1; i < getVertexNum(); i++){
+            if (result > getVertexCoords(i)[0])
+                result = getVertexCoords(i)[0];
+        }
+        return result;
+    }
+
+    public int getMaxY(){
+        if (getVertexNum() == 0)
+            throw new IllegalStateException("В полигоне нет ни одной точки");
+        int result = getVertexCoords(0)[1];
+        for (int i = 1; i < getVertexNum(); i++){
+            if (result < getVertexCoords(i)[1])
+                result = getVertexCoords(i)[1];
+        }
+        return result;
+    }
+
+    public int getMinY(){
+        if (getVertexNum() == 0)
+            throw new IllegalStateException("В полигоне нет ни одной точки");
+        int result = getVertexCoords(0)[1];
+        for (int i = 1; i < getVertexNum(); i++){
+            if (result > getVertexCoords(i)[1])
+                result = getVertexCoords(i)[1];
+        }
+        return result;
     }
 
     public boolean isConvex(){
@@ -160,7 +204,7 @@ class Polygon{
     }
 
     private enum EType {
-        TOUCHICNG,
+        TOUCHING,
         CROSS_LEFT,
         CROSS_RIGHT,
         INESSENTIAL,
@@ -171,17 +215,15 @@ class Polygon{
             case LEFT:
                 if (rayStartY > ay && rayStartY <= by)
                     return EType.CROSS_LEFT;
-                else
-                    return EType.INESSENTIAL;
+                return EType.INESSENTIAL;
             case RIGHT:
                 if (rayStartY > by && rayStartY <= ay)
                     return EType.CROSS_RIGHT;
-                else
-                    return EType.INESSENTIAL;
+                return EType.INESSENTIAL;
             case BETWEEN:
-            case BEYOND:
+            case ORIGIN:
             case DESTINATION:
-                return EType.TOUCHICNG;
+                return EType.TOUCHING;
             default:
                 return EType.INESSENTIAL;
         }
@@ -199,7 +241,7 @@ class Polygon{
             int[] aCoords = getVertexCoords(i);
             int[] bCoords = getVertexCoords((i + 1) % n);
             switch (edgeRayClassify(aCoords[0], aCoords[1], bCoords[0], bCoords[1], x, y)){
-                case TOUCHICNG:
+                case TOUCHING:
                     return PType.INSIDE;
                 case CROSS_LEFT:
                 case CROSS_RIGHT:
@@ -417,7 +459,10 @@ class Canvas{
     }
 
     public void fillPolygonEOMode(Polygon poly, byte[] bgr){
-        int minX = 0, minY = 0, maxX = getWidth() - 1, maxY = getHeight() - 1;
+        int minX = poly.getMinX();
+        int minY = poly.getMinY();
+        int maxX = poly.getMaxX();
+        int maxY = poly.getMaxY();
 
         for (int x = minX; x <= maxX; x++){
             for (int y = minY; y <= maxY; y++){
