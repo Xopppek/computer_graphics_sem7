@@ -2,6 +2,7 @@ import org.opencv.core.*;
 import org.opencv.highgui.HighGui;
 import org.opencv.imgproc.Imgproc;
 
+import java.util.Arrays;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -78,45 +79,25 @@ class Polygon{
     public int getMaxX(){
         if (getVertexNum() == 0)
             throw new IllegalStateException("В полигоне нет ни одной точки");
-        int result = getVertexCoords(0)[0];
-        for (int i = 1; i < getVertexNum(); i++){
-            if (result < getVertexCoords(i)[0])
-                result = getVertexCoords(i)[0];
-        }
-        return result;
+        return Arrays.stream(xCoords).max().getAsInt();
     }
 
     public int getMinX(){
         if (getVertexNum() == 0)
             throw new IllegalStateException("В полигоне нет ни одной точки");
-        int result = getVertexCoords(0)[0];
-        for (int i = 1; i < getVertexNum(); i++){
-            if (result > getVertexCoords(i)[0])
-                result = getVertexCoords(i)[0];
-        }
-        return result;
+        return Arrays.stream(xCoords).min().getAsInt();
     }
 
     public int getMaxY(){
         if (getVertexNum() == 0)
             throw new IllegalStateException("В полигоне нет ни одной точки");
-        int result = getVertexCoords(0)[1];
-        for (int i = 1; i < getVertexNum(); i++){
-            if (result < getVertexCoords(i)[1])
-                result = getVertexCoords(i)[1];
-        }
-        return result;
+        return Arrays.stream(yCoords).max().getAsInt();
     }
 
     public int getMinY(){
         if (getVertexNum() == 0)
             throw new IllegalStateException("В полигоне нет ни одной точки");
-        int result = getVertexCoords(0)[1];
-        for (int i = 1; i < getVertexNum(); i++){
-            if (result > getVertexCoords(i)[1])
-                result = getVertexCoords(i)[1];
-        }
-        return result;
+        return Arrays.stream(yCoords).min().getAsInt();
     }
 
     public boolean isConvex(){
