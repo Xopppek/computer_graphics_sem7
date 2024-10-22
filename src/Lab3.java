@@ -2,6 +2,9 @@ import org.opencv.core.*;
 import org.opencv.highgui.HighGui;
 import org.opencv.imgproc.Imgproc;
 
+import java.util.function.BiFunction;
+import java.util.function.Function;
+
 public class Lab3 {
     static {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
@@ -18,7 +21,8 @@ public class Lab3 {
         canvas.drawPolygon(poly, Canvas.Color.BLUE);
         System.out.println(poly.hasSelfIntersection());
         System.out.println(poly.isConvex());
-        canvas.fillPolygonEOMode(poly, Canvas.Color.BLUE);
+        canvas.fillPolygonNZWMode(poly, Canvas.Color.BLUE);
+        canvas.fillPolygonEOMode(poly, Canvas.Color.BLACK);
         
         // before drawing a window I resize image, so I can see something on my monitor
         // Only unchanged pictures will go to result files
@@ -248,6 +252,26 @@ class Polygon{
         return false;
     }
 
+    public boolean isPointInPolygonNZWMode(double x, double y){
+        int n = getVertexNum();
+        int param = 0;
+        for (int i = 0; i < n; i++){
+            int[] aCoords = getVertexCoords(i);
+            int[] bCoords = getVertexCoords((i + 1) % n);
+            switch (edgeRayClassify(aCoords[0], aCoords[1], bCoords[0], bCoords[1], x, y)){
+                case TOUCHING:
+                    return true;
+                case CROSS_LEFT:
+                    param++;
+                    break;
+                case CROSS_RIGHT:
+                    param--;
+                    break;
+            }
+        }
+        return param != 0;
+    }
+
     private boolean checkSelfIntersections(){
         int n = getVertexNum();
         if (n < 4)
@@ -454,6 +478,18 @@ class Canvas{
     }
 
     public void fillPolygonEOMode(Polygon poly, byte[] bgr){
+        fillPolygon(poly, bgr, poly::isPointInPolygonEOMode);
+    }
+
+    public void fillPolygonNZWMode(Polygon poly, Color color){
+        fillPolygonNZWMode(poly, color.getBgr());
+    }
+
+    public void fillPolygonNZWMode(Polygon poly, byte[] bgr){
+        fillPolygon(poly, bgr, poly::isPointInPolygonNZWMode);
+    }
+
+    private void fillPolygon(Polygon poly, byte[] bgr, BiFunction<Integer, Integer, Boolean> isInPolygonFunc){
         int minX = poly.getMinX();
         int minY = poly.getMinY();
         int maxX = poly.getMaxX();
@@ -461,10 +497,9 @@ class Canvas{
 
         for (int x = minX; x <= maxX; x++){
             for (int y = minY; y <= maxY; y++){
-                if (poly.isPointInPolygonEOMode(x, y))
+                if (isInPolygonFunc.apply(x, y))
                     image.put(y, x, bgr);
             }
         }
-
     }
 }
