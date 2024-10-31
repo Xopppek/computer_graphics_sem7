@@ -263,9 +263,7 @@ class Polygon{
                     param = 1 - param;
             }
         }
-        if (param == 1)
-            return true;
-        return false;
+        return param == 1;
     }
 
     public boolean isPointInPolygonNZWMode(double x, double y){
@@ -334,7 +332,7 @@ class Polygon{
             int aby = b[1] - a[1];
             int bcx = c[0] - b[0];
             int bcy = c[1] - b[1];
-            int product = abx * bcy - aby - bcx;
+            int product = abx * bcy - aby * bcx;
             if (product > 0)
                 hasPositiveRotation = true;
             if (product < 0)
