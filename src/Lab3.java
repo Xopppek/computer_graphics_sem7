@@ -33,6 +33,12 @@ public class Lab3 {
         canvasPolygon.drawPolygon(starPolygon, Canvas.Color.BLUE);
         displayImage(canvasPolygon.getImage(), 4, "Star");
         Imgcodecs.imwrite(savePath + "star.png", canvasPolygon.getImage());
+        System.out.println("Star self intersections " + starPolygon.hasSelfIntersection());
+        System.out.println("Star is convex " + starPolygon.isConvex());
+
+        var trianglePolygon = new Polygon(10, 10, 100, 80, 50, 30);
+        System.out.println("Triangle self intersections " + trianglePolygon.hasSelfIntersection());
+        System.out.println("Triangle is convex " + trianglePolygon.isConvex());
 
         var canvasFilledEO = new Canvas(120, 120);
         canvasFilledEO.drawPolygon(starPolygon, Canvas.Color.BLACK);
@@ -316,6 +322,9 @@ class Polygon{
         int n = getVertexNum();
         if (n < 3)
             return true;
+
+        if (checkSelfIntersections())
+            return false;
 
         boolean hasPositiveRotation = false;
         boolean hasNegativeRotation = false;
