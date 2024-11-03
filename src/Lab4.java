@@ -44,8 +44,8 @@ public class Lab4 extends Lab3{
         saveScaled(canvasCurve3.getImage(), 3, "curve3_with_lines");
 
         var canvasCutting = new CanvasLab4(200, 200);
-        var polygon = new Polygon(0, 10, 40, 140, 160, 40);
-        // var polygon = new Polygon(0, 10, 160, 40, 40, 140);
+        // var polygon = new Polygon(0, 10, 40, 140, 160, 40);
+        var polygon = new Polygon(0, 10, 160, 40, 40, 140);
         canvasCutting.drawPolygon(polygon, Canvas.Color.BLACK);
         Point2D[][] lines = {
                 {new Point2D(0, 0), new Point2D(80, 160)},
@@ -134,7 +134,7 @@ class CanvasLab4 extends Canvas{
 
     public void drawCyrusBeckClippedLine(Point2D p1, Point2D p2, Polygon polygon, byte[] bgr){
         if (!isClockWiseOriented(polygon))
-            throw new IllegalArgumentException("Полигон должен быть ориентирован по часовой стрелке");
+            polygon = switchOrientation(polygon);
         if (!polygon.isConvex())
             throw new IllegalArgumentException("Полигон должен быть выпуклым");
 
@@ -166,6 +166,20 @@ class CanvasLab4 extends Canvas{
             Point2D p2Cut = p1.add(p2.minus(p1).multiply(t2));
             drawLine(p1Cut, p2Cut, bgr);
         }
+    }
+
+    private static Polygon switchOrientation(Polygon polygon){
+        int n = polygon.getVertexNum();
+
+        int[] xCoords = new int[n];
+        int[] yCoords = new int[n];
+
+        for (int i = 0; i < n; i++){
+            xCoords[i] = polygon.getVertexCoords(n - 1 - i)[0];
+            yCoords[i] = polygon.getVertexCoords(n - 1 - i)[1];
+        }
+
+        return new Polygon(xCoords, yCoords);
     }
 
     private static boolean isClockWiseOriented(Polygon polygon){
