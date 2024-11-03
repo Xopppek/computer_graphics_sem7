@@ -1,6 +1,9 @@
 import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.core.Size;
 import org.opencv.highgui.HighGui;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 
 public class Lab4 extends Lab3{
     static {
@@ -10,16 +13,31 @@ public class Lab4 extends Lab3{
     static String savePath = "src/results/lab4/";
 
     public static void main(String[] args) {
-        var canvas = new CanvasLab4(200, 200);
+        var canvasCurves = new CanvasLab4(200, 200);
 
-        Point[] points = {new Point(0, 0), new Point(80, 160),
+        Point[] curve1 = {new Point(0, 0), new Point(80, 160),
                           new Point(160, 0), new Point(200, 160)};
-        canvas.drawBezierCurveCubic(points[0], points[1], points[2], points[3], Canvas.Color.BLACK);
+        Point[] curve2 = {new Point(160, 200), new Point(0, 160),
+                          new Point(40, 0), new Point(200, 160)};
+        Point[] curve3 = {new Point(120, 120), new Point(0, 0),
+                          new Point(0, 200), new Point(120, 80)};
+        canvasCurves.drawBezierCurveCubic(curve1[0], curve1[1], curve1[2], curve1[3], Canvas.Color.BLACK);
+        canvasCurves.drawBezierCurveCubic(curve2[0], curve2[1], curve2[2], curve2[3], Canvas.Color.BLUE);
+        canvasCurves.drawBezierCurveCubic(curve3[0], curve3[1], curve3[2], curve3[3], Canvas.Color.GREEN);
 
-        Imgcodecs.imwrite(savePath + "curve.png", canvas.getImage());
-        displayImage(canvas.getImage(), 3);
+        Imgcodecs.imwrite(savePath + "curves.png", canvasCurves.getImage());
+        saveScaled(canvasCurves.getImage(), 3, "curves");
+        displayImage(canvasCurves.getImage(), 3, "Bezier Curves");
 
         HighGui.waitKey();
+    }
+
+    public static void saveScaled(Mat image, double scalingFactor, String title) {
+        Mat resizedImage = new Mat();
+        Imgproc.resize(image, resizedImage, new Size(image.cols() * scalingFactor,
+                        image.height() * scalingFactor),
+                0, 0, Imgproc.INTER_NEAREST);
+        Imgcodecs.imwrite(savePath + title + "_scaled.png", resizedImage);
     }
 }
 
@@ -47,11 +65,12 @@ class CanvasLab4 extends Canvas{
         double N = 1.0 + Math.sqrt(3 * H);
 
         var prevPoint = p0;
-        for (double t = 0; t < 1 + 0.5 / N; t += 1 / N){
+        for (double t = 0; t < 1; t += 1 / N){
             var curPoint = bezierCubic(p0, p1, p2, p3, t);
             drawLine(prevPoint, curPoint, bgr);
             prevPoint = curPoint;
         }
+        drawLine(prevPoint, p3, bgr);
     }
 
     private Point bezierLine(Point p0, Point p1, double t){
@@ -90,7 +109,6 @@ class Point{
 
     public Point multiply(double scalar){
         return new Point(scalar * x, scalar * y);
-        //return new Point((int) Math.round(scalar * x), (int) Math.round(scalar * y));
     }
 
     public double getX(){
