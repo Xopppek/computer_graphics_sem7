@@ -25,19 +25,39 @@ public class Lab4 extends Lab3{
         canvasCurves.drawBezierCurveCubic(curve2[0], curve2[1], curve2[2], curve2[3], Canvas.Color.BLUE);
         canvasCurves.drawBezierCurveCubic(curve3[0], curve3[1], curve3[2], curve3[3], Canvas.Color.GREEN);
 
+        // Код для отрисовки точек и соединяющих их прямых
+        // Выглядит не очень удобно (стоит разнести на разные холсты)
+
+        var canvasCurve1 = new CanvasLab4(200, 200);
+        var canvasCurve2 = new CanvasLab4(200, 200);
+        var canvasCurve3 = new CanvasLab4(200, 200);
+        canvasCurve1.drawBezierCurveCubic(curve1[0], curve1[1], curve1[2], curve1[3], Canvas.Color.BLACK);
+        canvasCurve2.drawBezierCurveCubic(curve2[0], curve2[1], curve2[2], curve2[3], Canvas.Color.BLUE);
+        canvasCurve3.drawBezierCurveCubic(curve3[0], curve3[1], curve3[2], curve3[3], Canvas.Color.GREEN);
+        for (int i = 1; i < 4; i++){
+            canvasCurve1.drawLine(curve1[i-1], curve1[i], Canvas.Color.RED);
+            canvasCurve2.drawLine(curve2[i-1], curve2[i], Canvas.Color.RED);
+            canvasCurve3.drawLine(curve3[i-1], curve3[i], Canvas.Color.RED);
+        }
+        saveScaled(canvasCurve1.getImage(), 3, "curve1_with_lines");
+        saveScaled(canvasCurve2.getImage(), 3, "curve2_with_lines");
+        saveScaled(canvasCurve3.getImage(), 3, "curve3_with_lines");
+
         var canvasCutting = new CanvasLab4(200, 200);
         var polygon = new Polygon(0, 10, 40, 140, 160, 40);
         // var polygon = new Polygon(0, 10, 160, 40, 40, 140);
         canvasCutting.drawPolygon(polygon, Canvas.Color.BLACK);
-        Point2D[] line1 = {new Point2D(0, 0), new Point2D(80, 160)};
-        Point2D[] line2 = {new Point2D(30, 170), new Point2D(160, 190)};
-        Point2D[] line3 = {new Point2D(100, 59), new Point2D(200, 40)};
-        canvasCutting.drawLine(line1[0], line1[1], Canvas.Color.RED);
-        canvasCutting.drawLine(line2[0], line2[1], Canvas.Color.RED);
-        canvasCutting.drawLine(line3[0], line3[1], Canvas.Color.RED);
-        canvasCutting.drawCyrusBeckClippedLine(line1[0], line1[1], polygon, Canvas.Color.GREEN);
-        canvasCutting.drawCyrusBeckClippedLine(line2[0], line2[1], polygon, Canvas.Color.GREEN);
-        canvasCutting.drawCyrusBeckClippedLine(line3[0], line3[1], polygon, Canvas.Color.GREEN);
+        Point2D[][] lines = {
+                {new Point2D(0, 0), new Point2D(80, 160)},
+                {new Point2D(30, 170), new Point2D(160, 190)},
+                {new Point2D(100, 59), new Point2D(200, 40)},
+                {new Point2D(200, 200), new Point2D(150, 150)},
+        };
+
+        for (var line : lines){
+            canvasCutting.drawLine(line[0], line[1], Canvas.Color.RED);
+            canvasCutting.drawCyrusBeckClippedLine(line[0], line[1], polygon, Canvas.Color.GREEN);
+        }
 
         Imgcodecs.imwrite(savePath + "curves.png", canvasCurves.getImage());
         saveScaled(canvasCurves.getImage(), 3, "curves");
