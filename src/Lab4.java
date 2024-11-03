@@ -15,12 +15,12 @@ public class Lab4 extends Lab3{
     public static void main(String[] args) {
         var canvasCurves = new CanvasLab4(200, 200);
 
-        Point[] curve1 = {new Point(0, 0), new Point(80, 160),
-                          new Point(160, 0), new Point(200, 160)};
-        Point[] curve2 = {new Point(160, 200), new Point(0, 160),
-                          new Point(40, 0), new Point(200, 160)};
-        Point[] curve3 = {new Point(120, 120), new Point(0, 0),
-                          new Point(0, 200), new Point(120, 80)};
+        Point2D[] curve1 = {new Point2D(0, 0), new Point2D(80, 160),
+                          new Point2D(160, 0), new Point2D(200, 160)};
+        Point2D[] curve2 = {new Point2D(160, 200), new Point2D(0, 160),
+                          new Point2D(40, 0), new Point2D(200, 160)};
+        Point2D[] curve3 = {new Point2D(120, 120), new Point2D(0, 0),
+                          new Point2D(0, 200), new Point2D(120, 80)};
         canvasCurves.drawBezierCurveCubic(curve1[0], curve1[1], curve1[2], curve1[3], Canvas.Color.BLACK);
         canvasCurves.drawBezierCurveCubic(curve2[0], curve2[1], curve2[2], curve2[3], Canvas.Color.BLUE);
         canvasCurves.drawBezierCurveCubic(curve3[0], curve3[1], curve3[2], curve3[3], Canvas.Color.GREEN);
@@ -47,19 +47,19 @@ class CanvasLab4 extends Canvas{
         super(width, height);
     }
 
-    public void drawLine(Point p1, Point p2, Color color) {
+    public void drawLine(Point2D p1, Point2D p2, Color color) {
         drawLine(p1, p2, color.getBgr());
     }
 
-    public void drawLine(Point p1, Point p2, byte[] bgr) {
+    public void drawLine(Point2D p1, Point2D p2, byte[] bgr) {
         drawLine((int) p1.getX(), (int) p1.getY(), (int) p2.getX(), (int) p2.getY(), bgr);
     }
 
-    public void drawBezierCurveCubic(Point p0, Point p1, Point p2, Point p3, Color color) {
+    public void drawBezierCurveCubic(Point2D p0, Point2D p1, Point2D p2, Point2D p3, Color color) {
         drawBezierCurveCubic(p0, p1, p2, p3, color.getBgr());
     }
 
-    public void drawBezierCurveCubic(Point p0, Point p1, Point p2, Point p3, byte[] bgr) {
+    public void drawBezierCurveCubic(Point2D p0, Point2D p1, Point2D p2, Point2D p3, byte[] bgr) {
         double H = Math.max(bezierDist(p0.add(p2.multiply(-2)).add(p3)),
                             bezierDist(p0.add(p2.multiply(-2)).add(p3)));
         double N = 1.0 + Math.sqrt(3 * H);
@@ -73,24 +73,24 @@ class CanvasLab4 extends Canvas{
         drawLine(prevPoint, p3, bgr);
     }
 
-    private Point bezierLine(Point p0, Point p1, double t){
+    private Point2D bezierLine(Point2D p0, Point2D p1, double t){
         return p0.multiply(1.0 - t).add(p1.multiply(t));
     }
 
-    private Point bezierQuadratic(Point p0, Point p1, Point p2, double t){
+    private Point2D bezierQuadratic(Point2D p0, Point2D p1, Point2D p2, double t){
         return bezierLine(bezierLine(p0, p1, t), bezierLine(p1, p2, t), t);
     }
 
-    private Point bezierCubic(Point p0, Point p1, Point p2, Point p3, double t){
+    private Point2D bezierCubic(Point2D p0, Point2D p1, Point2D p2, Point2D p3, double t){
         return bezierLine(bezierQuadratic(p0, p1, p2, t), bezierQuadratic(p1, p2, p3, t), t);
     }
 
-    private double bezierDist(Point p){
+    private double bezierDist(Point2D p){
         return Math.abs(p.getX()) + Math.abs(p.getY());
     }
 }
 
-class Point{
+class Point2D {
     // Возможно стоило добавить этот класс еще в предыдущей лабораторной
     // в этой без него стало совсем уж неудобно
     // после экспериментов я пришел к выводу, что лучше всего хранить координаты в действительных числах
@@ -98,17 +98,17 @@ class Point{
     private final double x;
     private final double y;
 
-    public Point(double x, double y) {
+    public Point2D(double x, double y) {
         this.x = x;
         this.y = y;
     }
 
-    public Point add(Point p){
-        return new Point(x + p.x, y + p.y);
+    public Point2D add(Point2D p){
+        return new Point2D(x + p.x, y + p.y);
     }
 
-    public Point multiply(double scalar){
-        return new Point(scalar * x, scalar * y);
+    public Point2D multiply(double scalar){
+        return new Point2D(scalar * x, scalar * y);
     }
 
     public double getX(){
