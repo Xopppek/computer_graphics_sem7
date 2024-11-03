@@ -25,9 +25,21 @@ public class Lab4 extends Lab3{
         canvasCurves.drawBezierCurveCubic(curve2[0], curve2[1], curve2[2], curve2[3], Canvas.Color.BLUE);
         canvasCurves.drawBezierCurveCubic(curve3[0], curve3[1], curve3[2], curve3[3], Canvas.Color.GREEN);
 
+        var canvasCutting = new CanvasLab4(200, 200);
+        var polygon = new Polygon(0, 10, 40, 140, 160, 40);
+        canvasCutting.drawPolygon(polygon, Canvas.Color.BLACK);
+        Point2D[] line1 = {new Point2D(0, 0), new Point2D(80, 160)};
+        Point2D[] line2 = {new Point2D(30, 170), new Point2D(160, 190)};
+        canvasCutting.drawLine(line1[0], line1[1], Canvas.Color.RED);
+        canvasCutting.drawLine(line2[0], line2[1], Canvas.Color.RED);
+        canvasCutting.drawCyrusBeckClippedLine(line1[0], line1[1], polygon, Canvas.Color.GREEN);
+        canvasCutting.drawCyrusBeckClippedLine(line2[0], line2[1], polygon, Canvas.Color.GREEN);
+
         Imgcodecs.imwrite(savePath + "curves.png", canvasCurves.getImage());
         saveScaled(canvasCurves.getImage(), 3, "curves");
+
         displayImage(canvasCurves.getImage(), 3, "Bezier Curves");
+        displayImage(canvasCutting.getImage(), 3, "Cutting Lines");
 
         HighGui.waitKey();
     }
@@ -88,6 +100,63 @@ class CanvasLab4 extends Canvas{
     private double bezierDist(Point2D p){
         return Math.abs(p.getX()) + Math.abs(p.getY());
     }
+
+    public void drawCyrusBeckClippedLine(Point2D p1, Point2D p2, Polygon polygon, Color color){
+        drawCyrusBeckClippedLine(p1, p2, polygon, color.getBgr());
+    }
+
+    public void drawCyrusBeckClippedLine(Point2D p1, Point2D p2, Polygon polygon, byte[] bgr){
+        if (!isClockWiseOriented(polygon))
+            throw new IllegalArgumentException("Полигон должен быть ориентирован по часовой стрелке");
+
+        int n = polygon.getVertexNum();
+        double t1 = 0, t2 = 1, t;
+        double sx = p2.getX() - p1.getX(), sy = p2.getY() - p1.getY();
+        for (int i = 0; i < n; i++) {
+            double nx = polygon.getVertexCoords((i+1)%n)[1] - polygon.getVertexCoords(i)[1];
+            double ny = polygon.getVertexCoords(i)[0] - polygon.getVertexCoords((i+1)%n)[0];
+            double denom = nx * sx + ny * sy;
+            double num = nx * (p1.getX() - polygon.getVertexCoords(i)[0]) +
+                         ny * (p1.getY() - polygon.getVertexCoords(i)[1]);
+            if (denom != 0) {
+                t = -num / denom;
+                if (denom > 0)
+                    if (t > t1)
+                        t1 = t;
+                    else if (t < t2)
+                        t2 = t;
+            }
+        }
+        if (t1 <= t2) {
+            Point2D p1Cut = p1.add(p2.minus(p1).multiply(t1));
+            Point2D p2Cut = p2.add(p2.minus(p1).multiply(t2));
+            drawLine(p1Cut, p1Cut, bgr);
+        } else {
+            drawLine(p1, p2, bgr);
+        }
+    }
+
+    private static boolean isClockWiseOriented(Polygon polygon){
+        int n = polygon.getVertexNum();
+
+        boolean hasPositiveRotation = false;
+
+        for (int i = 0; i < n; i++){
+            int[] a = polygon.getVertexCoords(i);
+            int[] b = polygon.getVertexCoords((i + 1) % n);
+            int[] c = polygon.getVertexCoords((i + 2) % n);
+            int abx = b[0] - a[0];
+            int aby = b[1] - a[1];
+            int bcx = c[0] - b[0];
+            int bcy = c[1] - b[1];
+            int product = abx * bcy - aby * bcx;
+            if (product > 0)
+                hasPositiveRotation = true;
+            if (hasPositiveRotation)
+                return false;
+        }
+        return true;
+    }
 }
 
 class Point2D {
@@ -105,6 +174,10 @@ class Point2D {
 
     public Point2D add(Point2D p){
         return new Point2D(x + p.x, y + p.y);
+    }
+
+    public Point2D minus(Point2D p){
+        return new Point2D(x - p.x, y - p.y);
     }
 
     public Point2D multiply(double scalar){
