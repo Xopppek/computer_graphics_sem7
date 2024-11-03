@@ -25,9 +25,6 @@ public class Lab4 extends Lab3{
         canvasCurves.drawBezierCurveCubic(curve2[0], curve2[1], curve2[2], curve2[3], Canvas.Color.BLUE);
         canvasCurves.drawBezierCurveCubic(curve3[0], curve3[1], curve3[2], curve3[3], Canvas.Color.GREEN);
 
-        // Код для отрисовки точек и соединяющих их прямых
-        // Выглядит не очень удобно (стоит разнести на разные холсты)
-
         var canvasCurve1 = new CanvasLab4(200, 200);
         var canvasCurve2 = new CanvasLab4(200, 200);
         var canvasCurve3 = new CanvasLab4(200, 200);
@@ -44,14 +41,17 @@ public class Lab4 extends Lab3{
         saveScaled(canvasCurve3.getImage(), 3, "curve3_with_lines");
 
         var canvasCutting = new CanvasLab4(200, 200);
-        // var polygon = new Polygon(0, 10, 40, 140, 160, 40);
-        var polygon = new Polygon(0, 10, 160, 40, 40, 140);
+        // var polygon = new Polygon(0, 10, 40, 140, 160, 40); // clockwise
+        var polygon = new Polygon(0, 10, 160, 40, 40, 140); // not clockwise
         canvasCutting.drawPolygon(polygon, Canvas.Color.BLACK);
         Point2D[][] lines = {
-                {new Point2D(0, 0), new Point2D(80, 160)},
-                {new Point2D(30, 170), new Point2D(160, 190)},
-                {new Point2D(100, 59), new Point2D(200, 40)},
+                {new Point2D(0, 0),     new Point2D(80, 160) },
+                {new Point2D(30, 170),  new Point2D(160, 190)},
+                {new Point2D(100, 59),  new Point2D(200, 40) },
                 {new Point2D(200, 200), new Point2D(150, 150)},
+                {new Point2D(30, 30),   new Point2D(60, 60)  },
+                {new Point2D(160, 40),  new Point2D(40, 140) },
+                {new Point2D(0, 5),     new Point2D(160, 35) },
         };
 
         for (var line : lines){
@@ -157,6 +157,11 @@ class CanvasLab4 extends Canvas{
                     if (t < t2)
                         t2 = t;
                 }
+            } else {
+                if (Polygon.pointSegmentClassify(polygon.getVertexCoords(i)[0], polygon.getVertexCoords(i)[1],
+                            polygon.getVertexCoords((i+1)%n)[0], polygon.getVertexCoords((i+1)%n)[1],
+                            p1.getX(), p1.getY()) == Polygon.CLPointType.LEFT)
+                    return;
             }
             if (t1 > t2)
                 return;

@@ -149,7 +149,7 @@ class Polygon{
         return hasSelfIntersections;
     }
 
-    private enum CLPointType{
+    protected enum CLPointType{
         LEFT,
         RIGHT,
         BEYOND,
@@ -159,7 +159,7 @@ class Polygon{
         DESTINATION,
     }
 
-    private static CLPointType pointSegmentClassify(double x1, double y1,
+    protected static CLPointType pointSegmentClassify(double x1, double y1,
                                                     double x2, double y2,
                                                     double x, double y){
         double ax = x2 - x1;
