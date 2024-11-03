@@ -27,6 +27,7 @@ public class Lab4 extends Lab3{
 
         var canvasCutting = new CanvasLab4(200, 200);
         var polygon = new Polygon(0, 10, 40, 140, 160, 40);
+        // var polygon = new Polygon(0, 10, 160, 40, 40, 140);
         canvasCutting.drawPolygon(polygon, Canvas.Color.BLACK);
         Point2D[] line1 = {new Point2D(0, 0), new Point2D(80, 160)};
         Point2D[] line2 = {new Point2D(30, 170), new Point2D(160, 190)};
@@ -108,6 +109,8 @@ class CanvasLab4 extends Canvas{
     public void drawCyrusBeckClippedLine(Point2D p1, Point2D p2, Polygon polygon, byte[] bgr){
         if (!isClockWiseOriented(polygon))
             throw new IllegalArgumentException("Полигон должен быть ориентирован по часовой стрелке");
+        if (!polygon.isConvex())
+            throw new IllegalArgumentException("Полигон должен быть выпуклым");
 
         int n = polygon.getVertexNum();
         double t1 = 0, t2 = 1, t;
@@ -120,19 +123,22 @@ class CanvasLab4 extends Canvas{
                          ny * (p1.getY() - polygon.getVertexCoords(i)[1]);
             if (denom != 0) {
                 t = -num / denom;
-                if (denom > 0)
+                if (denom > 0) {
                     if (t > t1)
                         t1 = t;
-                    else if (t < t2)
+                }
+                else {
+                    if (t < t2)
                         t2 = t;
+                }
             }
+            if (t1 > t2)
+                return;
         }
         if (t1 <= t2) {
             Point2D p1Cut = p1.add(p2.minus(p1).multiply(t1));
-            Point2D p2Cut = p2.add(p2.minus(p1).multiply(t2));
-            drawLine(p1Cut, p1Cut, bgr);
-        } else {
-            drawLine(p1, p2, bgr);
+            Point2D p2Cut = p1.add(p2.minus(p1).multiply(t2));
+            drawLine(p1Cut, p2Cut, bgr);
         }
     }
 
