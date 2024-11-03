@@ -31,13 +31,18 @@ public class Lab4 extends Lab3{
         canvasCutting.drawPolygon(polygon, Canvas.Color.BLACK);
         Point2D[] line1 = {new Point2D(0, 0), new Point2D(80, 160)};
         Point2D[] line2 = {new Point2D(30, 170), new Point2D(160, 190)};
+        Point2D[] line3 = {new Point2D(100, 59), new Point2D(200, 40)};
         canvasCutting.drawLine(line1[0], line1[1], Canvas.Color.RED);
         canvasCutting.drawLine(line2[0], line2[1], Canvas.Color.RED);
+        canvasCutting.drawLine(line3[0], line3[1], Canvas.Color.RED);
         canvasCutting.drawCyrusBeckClippedLine(line1[0], line1[1], polygon, Canvas.Color.GREEN);
         canvasCutting.drawCyrusBeckClippedLine(line2[0], line2[1], polygon, Canvas.Color.GREEN);
+        canvasCutting.drawCyrusBeckClippedLine(line3[0], line3[1], polygon, Canvas.Color.GREEN);
 
         Imgcodecs.imwrite(savePath + "curves.png", canvasCurves.getImage());
         saveScaled(canvasCurves.getImage(), 3, "curves");
+        Imgcodecs.imwrite(savePath + "cutting.png", canvasCutting.getImage());
+        saveScaled(canvasCutting.getImage(), 3, "cutting");
 
         displayImage(canvasCurves.getImage(), 3, "Bezier Curves");
         displayImage(canvasCutting.getImage(), 3, "Cutting Lines");
@@ -65,7 +70,8 @@ class CanvasLab4 extends Canvas{
     }
 
     public void drawLine(Point2D p1, Point2D p2, byte[] bgr) {
-        drawLine((int) p1.getX(), (int) p1.getY(), (int) p2.getX(), (int) p2.getY(), bgr);
+        drawLine((int) Math.round(p1.getX()), (int) Math.round(p1.getY()),
+                 (int) Math.round(p2.getX()), (int) Math.round(p2.getY()), bgr);
     }
 
     public void drawBezierCurveCubic(Point2D p0, Point2D p1, Point2D p2, Point2D p3, Color color) {
