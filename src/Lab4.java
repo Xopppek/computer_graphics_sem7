@@ -167,8 +167,8 @@ class CanvasLab4 extends Canvas{
                 return;
         }
         if (t1 <= t2) {
-            Point2D p1Cut = p1.add(p2.minus(p1).multiply(t1));
-            Point2D p2Cut = p1.add(p2.minus(p1).multiply(t2));
+            Point2D p1Cut = p1.add(p2.sub(p1).multiply(t1));
+            Point2D p2Cut = p1.add(p2.sub(p1).multiply(t2));
             drawLine(p1Cut, p2Cut, bgr);
         }
     }
@@ -227,7 +227,7 @@ class Point2D {
         return new Point2D(x + p.x, y + p.y);
     }
 
-    public Point2D minus(Point2D p){
+    public Point2D sub(Point2D p){
         return new Point2D(x - p.x, y - p.y);
     }
 
