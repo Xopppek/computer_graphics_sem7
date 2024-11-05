@@ -10,22 +10,23 @@ public class Lab5 extends Lab4 {
     static String savePath = "src/results/lab5/";
 
     public static void main(String[] args) {
-        var canvasParallel = new CanvasLab5(150, 150);
+        var canvasParallel = new CanvasLab5(160, 160);
+        var canvasPerspective = new CanvasLab5(160, 160);
         var figure = new Polyhedron(new Edge3D[]{
-                new Edge3D(new Point3D(5, 5, 0), new Point3D(5, 105, 0)),
-                new Edge3D(new Point3D(5, 105, 0), new Point3D(105, 105, 0)),
-                new Edge3D(new Point3D(105, 105, 0), new Point3D(105, 5, 0)),
-                new Edge3D(new Point3D(105, 5, 0), new Point3D(5, 5, 0)),
+                new Edge3D(new Point3D( 25, 25, 0), new Point3D( 25,125, 0)),
+                new Edge3D(new Point3D( 25,125, 0), new Point3D(125,125, 0)),
+                new Edge3D(new Point3D(125,125, 0), new Point3D(125, 25, 0)),
+                new Edge3D(new Point3D(125, 25, 0), new Point3D( 25, 25, 0)),
 
-                new Edge3D(new Point3D(5, 5, 0), new Point3D(25, 25, 200)),
-                new Edge3D(new Point3D(5, 105, 0), new Point3D(25, 125, 200)),
-                new Edge3D(new Point3D(105, 105, 0), new Point3D(125, 125, 200)),
-                new Edge3D(new Point3D(105, 5, 0), new Point3D(125, 25, 200)),
+                new Edge3D(new Point3D(25,  25, 0), new Point3D( 50, 50, 200)),
+                new Edge3D(new Point3D(25, 125, 0), new Point3D( 50,150, 200)),
+                new Edge3D(new Point3D(125,125, 0), new Point3D(150,150, 200)),
+                new Edge3D(new Point3D(125, 25, 0), new Point3D(150, 50, 200)),
 
-                new Edge3D(new Point3D(25, 25, 200), new Point3D(25, 125, 200)),
-                new Edge3D(new Point3D(25, 125, 200), new Point3D(125, 125, 200)),
-                new Edge3D(new Point3D(125, 125, 200), new Point3D(125, 25, 200)),
-                new Edge3D(new Point3D(125, 25, 200), new Point3D(25, 25, 200)),
+                new Edge3D(new Point3D( 50, 50, 200), new Point3D( 50,150, 200)),
+                new Edge3D(new Point3D( 50,150, 200), new Point3D(150,150, 200)),
+                new Edge3D(new Point3D(150,150, 200), new Point3D(150, 50, 200)),
+                new Edge3D(new Point3D(150, 50, 200), new Point3D( 50, 50, 200)),
         });
 
         var parallelProjectionLines = figure.getParallelProjectionXY();
@@ -34,7 +35,15 @@ public class Lab5 extends Lab4 {
         }
 
         Imgcodecs.imwrite(savePath + "parallel.png", canvasParallel.getImage());
-        displayImage(canvasParallel.getImage(), 3);
+        displayImage(canvasParallel.getImage(), 3, "Parallel Projection");
+
+        var perspectiveProjectionLines = figure.getPerspectiveProjectionOnZ(0.0025);
+        for (var line : perspectiveProjectionLines) {
+            canvasPerspective.drawLine(line[0], line[1], Canvas.Color.BLACK);
+        }
+
+        Imgcodecs.imwrite(savePath + "perspective.png", canvasPerspective.getImage());
+        displayImage(canvasPerspective.getImage(), 3, "Perspective Projection");
 
         HighGui.waitKey(0);
     }
@@ -68,6 +77,18 @@ class Polyhedron {
             var p2 = edges[i].getP2();
             points[i][0] = new Point2D(p1.getX(), p1.getY());
             points[i][1] = new Point2D(p2.getX(), p2.getY());
+        }
+
+        return points;
+    }
+
+    public Point2D[][] getPerspectiveProjectionOnZ(double k) {
+        var points = new Point2D[edges.length][2];
+        for (int i = 0; i < edges.length; i++) {
+            var p1 = edges[i].getP1();
+            var p2 = edges[i].getP2();
+            points[i][0] = new Point2D(p1.getX(), p1.getY()).multiply(1 / (k * p1.getZ() + 1));
+            points[i][1] = new Point2D(p2.getX(), p2.getY()).multiply(1 / (k * p2.getZ() + 1));
         }
 
         return points;
