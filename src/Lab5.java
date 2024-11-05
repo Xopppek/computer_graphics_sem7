@@ -37,7 +37,7 @@ public class Lab5 extends Lab4 {
         Imgcodecs.imwrite(savePath + "parallel.png", canvasParallel.getImage());
         displayImage(canvasParallel.getImage(), 3, "Parallel Projection");
 
-        var perspectiveProjectionLines = figure.getPerspectiveProjectionOnZ(0.0025);
+        var perspectiveProjectionLines = figure.getPerspectiveProjectionXYpointOnZ(0.0025);
         for (var line : perspectiveProjectionLines) {
             canvasPerspective.drawLine(line[0], line[1], Canvas.Color.BLACK);
         }
@@ -82,7 +82,7 @@ class Polyhedron {
         return points;
     }
 
-    public Point2D[][] getPerspectiveProjectionOnZ(double k) {
+    public Point2D[][] getPerspectiveProjectionXYpointOnZ(double k) {
         var points = new Point2D[edges.length][2];
         for (int i = 0; i < edges.length; i++) {
             var p1 = edges[i].getP1();
