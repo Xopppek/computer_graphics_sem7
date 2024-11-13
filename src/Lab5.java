@@ -1,6 +1,19 @@
 import org.opencv.core.Core;
+import org.opencv.core.Mat;
 import org.opencv.highgui.HighGui;
 import org.opencv.imgcodecs.Imgcodecs;
+
+import javax.imageio.*;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.metadata.IIOMetadataNode;
+import javax.imageio.stream.ImageOutputStream;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 
@@ -30,27 +43,27 @@ public class Lab5 extends Lab4 {
 //        canvasPoint.drawPoint(new Point2D(p.getX(), p.getY()), Canvas.Color.RED);
 //        displayImage(canvasPoint.getImage(), 5);
 
-        var canvasParallel = new CanvasLab5(700, 700);
-        var canvasPerspective = new CanvasLab5(700, 700);
-        var canvasParallelDel = new CanvasLab5(700, 700);
-        var canvasPerspectiveDel = new CanvasLab5(700, 700);
+        var canvasParallel = new CanvasLab5(900, 600);
+        var canvasPerspective = new CanvasLab5(900, 600);
+        var canvasParallelDel = new CanvasLab5(900, 600);
+        var canvasPerspectiveDel = new CanvasLab5(900, 600);
 
         var figure = new Polyhedron(new Face[]{
-                new Face(new Edge3D(new Point3D(100, 100, 0),   new Point3D(500, 100, 0)),
-                         new Edge3D(new Point3D(100, 100, 0),   new Point3D(100, 500, 0))),
-                new Face(new Edge3D(new Point3D(100, 100, 0),   new Point3D(200, 200, 500)),
-                         new Edge3D(new Point3D(100, 100, 0),   new Point3D(500, 100, 0))),
-                new Face(new Edge3D(new Point3D(100, 100, 0),   new Point3D(100, 500, 0)),
-                         new Edge3D(new Point3D(100, 100, 0),   new Point3D(200, 200, 500))),
-                new Face(new Edge3D(new Point3D(100, 500, 0),   new Point3D(500, 500, 0)),
-                         new Edge3D(new Point3D(100, 500, 0),   new Point3D(200, 600, 500))),
-                new Face(new Edge3D(new Point3D(500, 500, 0),   new Point3D(500, 100, 0)),
-                         new Edge3D(new Point3D(500, 500, 0),   new Point3D(600, 600, 500))),
-                new Face(new Edge3D(new Point3D(200, 200, 500), new Point3D(200, 600, 500)),
-                         new Edge3D(new Point3D(200, 200, 500), new Point3D(600, 200, 500))),
+                new Face(new Point3D(100, 100, 0),   new Point3D(500, 100, 0),
+                         new Point3D(100, 500, 0),   new Point3D(500, 500, 0)),
+                new Face(new Point3D(100, 100, 0),   new Point3D(200, 200, 500),
+                         new Point3D(500, 100, 0),   new Point3D(600, 200, 500)),
+                new Face(new Point3D(100, 100, 0),   new Point3D(100, 500, 0),
+                         new Point3D(200, 200, 500), new Point3D(200, 600, 500)),
+                new Face(new Point3D(100, 500, 0),   new Point3D(500, 500, 0),
+                         new Point3D(200, 600, 500), new Point3D(600, 600, 500)),
+                new Face(new Point3D(500, 500, 0),   new Point3D(500, 100, 0),
+                         new Point3D(600, 600, 500), new Point3D(600, 200, 500)),
+                new Face(new Point3D(200, 200, 500), new Point3D(200, 600, 500),
+                         new Point3D(600, 200, 500), new Point3D(600, 600, 500)),
         });
 
-        figure = figure.rotate(Math.PI / 15, new Point3D(0, 0, 1));
+        figure = figure.rotate(Math.PI / 3, new Point3D(1, 1.6, 0));
         // figure = figure.apply(T);
 
         var parallelProjectionLines = figure.getParallelProjectionXY();
@@ -61,7 +74,7 @@ public class Lab5 extends Lab4 {
         Imgcodecs.imwrite(savePath + "parallel.png", canvasParallel.getImage());
         displayImage(canvasParallel.getImage(), 1, "Parallel Projection");
 
-        var perspectiveProjectionLines = figure.getPerspectiveProjectionXYpointOnZ(10);
+        var perspectiveProjectionLines = figure.getPerspectiveProjectionXYpointOnZ(-0.0006);
         for (var line : perspectiveProjectionLines) {
             canvasPerspective.drawLine(line[0], line[1], Canvas.Color.BLACK);
         }
@@ -73,7 +86,7 @@ public class Lab5 extends Lab4 {
         displayImage(canvasParallelDel.getImage(), 1, "Parallel with deleted edges");
         Imgcodecs.imwrite(savePath + "parallel_deleted_edges.png", canvasParallelDel.getImage());
 
-        var perspectiveDelLines = figure.getPerspectiveProjectionXYpointOnZ(10, new Point3D(0, 0, -1));
+        var perspectiveDelLines = figure.getPerspectiveProjectionXYpointOnZ(-0.0006, new Point3D(0, 0, -1));
         for (var line : perspectiveDelLines) {
             canvasPerspectiveDel.drawLine(line[0], line[1], Canvas.Color.BLACK);
         }
@@ -84,8 +97,124 @@ public class Lab5 extends Lab4 {
         Imgcodecs.imwrite(savePath + "perspective.png", canvasPerspective.getImage());
         displayImage(canvasPerspective.getImage(), 1, "Perspective Projection");
 
+
+        try {
+            createParallelGif(savePath + "parallel_rotation.gif", 120, 20, figure);
+            createPerspectiveGif(savePath + "perspective_rotation.gif", 120, 20, figure);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         HighGui.waitKey(0);
     }
+
+
+    public static void createParallelGif(String filePath, int frameCount, int delay, Polyhedron figure) throws Exception {
+        ImageWriter gifWriter = getGifWriter();
+        ImageWriteParam params = gifWriter.getDefaultWriteParam();
+        ImageOutputStream output = ImageIO.createImageOutputStream(new File(filePath));
+        gifWriter.setOutput(output);
+
+        // Настройка цикла анимации
+        gifWriter.prepareWriteSequence(null);
+
+        for (double angle = 0; angle < 2 * Math.PI; angle += Math.PI / (frameCount / 2.0)) {
+            var canv = new CanvasLab5(900, 600);
+            var figureDraw = figure.rotate(angle, new Point3D(1, 2, 0));
+            var parallelDelLines = figureDraw.getParallelProjectionXY(new Point3D(0, 0, -1));
+            for (var line : parallelDelLines) {
+                canv.drawLine(line[0], line[1], Canvas.Color.BLACK);
+            }
+            Mat matFrame = canv.getImage();
+            BufferedImage bufferedImage = matToBufferedImage(matFrame);
+
+            IIOMetadata metadata = gifWriter.getDefaultImageMetadata(ImageTypeSpecifier.createFromRenderedImage(bufferedImage), params);
+            configureMetadata(metadata, delay);
+
+            gifWriter.writeToSequence(new IIOImage(bufferedImage, null, metadata), params);
+        }
+
+        gifWriter.endWriteSequence();
+        output.close();
+    }
+
+    public static void createPerspectiveGif(String filePath, int frameCount, int delay, Polyhedron figure) throws Exception {
+        ImageWriter gifWriter = getGifWriter();
+        ImageWriteParam params = gifWriter.getDefaultWriteParam();
+        ImageOutputStream output = ImageIO.createImageOutputStream(new File(filePath));
+        gifWriter.setOutput(output);
+
+        // Настройка цикла анимации
+        gifWriter.prepareWriteSequence(null);
+
+        for (double angle = 0; angle < 2 * Math.PI; angle += Math.PI / (frameCount / 2.0)) {
+            var canv = new CanvasLab5(900, 600);
+            var figureDraw = figure.rotate(angle, new Point3D(1, 2, 0));
+            var parallelDelLines = figureDraw.getPerspectiveProjectionXYpointOnZ(-0.0006, new Point3D(0, 0, -1));
+            for (var line : parallelDelLines) {
+                canv.drawLine(line[0], line[1], Canvas.Color.BLACK);
+            }
+            Mat matFrame = canv.getImage();
+            BufferedImage bufferedImage = matToBufferedImage(matFrame);
+
+            IIOMetadata metadata = gifWriter.getDefaultImageMetadata(ImageTypeSpecifier.createFromRenderedImage(bufferedImage), params);
+            configureMetadata(metadata, delay);
+
+            gifWriter.writeToSequence(new IIOImage(bufferedImage, null, metadata), params);
+        }
+
+        gifWriter.endWriteSequence();
+        output.close();
+    }
+
+    private static ImageWriter getGifWriter() {
+        Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("gif");
+        if (!writers.hasNext()) throw new IllegalStateException("GIF writer not found!");
+        return writers.next();
+    }
+
+    private static BufferedImage matToBufferedImage(Mat mat) {
+        int type = mat.channels() == 1 ? BufferedImage.TYPE_BYTE_GRAY : BufferedImage.TYPE_3BYTE_BGR;
+        BufferedImage image = new BufferedImage(mat.width(), mat.height(), type);
+        mat.get(0, 0, ((DataBufferByte) image.getRaster().getDataBuffer()).getData());
+        return image;
+    }
+
+    private static void configureMetadata(IIOMetadata metadata, int delay) throws Exception {
+        String metaFormatName = metadata.getNativeMetadataFormatName();
+        IIOMetadataNode root = (IIOMetadataNode) metadata.getAsTree(metaFormatName);
+
+        IIOMetadataNode graphicsControlExtensionNode = getNode(root, "GraphicControlExtension");
+        graphicsControlExtensionNode.setAttribute("disposalMethod", "restoreToBackgroundColor");
+        graphicsControlExtensionNode.setAttribute("userInputFlag", "FALSE");
+        graphicsControlExtensionNode.setAttribute("transparentColorFlag", "FALSE");
+        graphicsControlExtensionNode.setAttribute("delayTime", Integer.toString(delay / 10)); // Конвертируем задержку в сотые доли секунды
+        graphicsControlExtensionNode.setAttribute("transparentColorIndex", "0");
+
+        IIOMetadataNode applicationExtensions = new IIOMetadataNode("ApplicationExtensions");
+        IIOMetadataNode applicationExtension = new IIOMetadataNode("ApplicationExtension");
+        applicationExtension.setAttribute("applicationID", "NETSCAPE");
+        applicationExtension.setAttribute("authenticationCode", "2.0");
+
+        byte[] loopContinuously = {0x1, 0x0, 0x0};
+        applicationExtension.setUserObject(loopContinuously);
+        applicationExtensions.appendChild(applicationExtension);
+        root.appendChild(applicationExtensions);
+
+        metadata.setFromTree(metaFormatName, root);
+    }
+
+    private static IIOMetadataNode getNode(IIOMetadataNode rootNode, String nodeName) {
+        for (int i = 0; i < rootNode.getLength(); i++) {
+            if (rootNode.item(i).getNodeName().equalsIgnoreCase(nodeName)) {
+                return (IIOMetadataNode) rootNode.item(i);
+            }
+        }
+        IIOMetadataNode node = new IIOMetadataNode(nodeName);
+        rootNode.appendChild(node);
+        return node;
+    }
+
 }
 
 class CanvasLab5 extends CanvasLab4 {
@@ -112,9 +241,7 @@ class Polyhedron {
         Face[] rotatedFaces = new Face[faces.length];
 
         for (int i = 0; i < faces.length; i++) {
-            var edge1 = faces[i].getEdge1().rotate(angle, axis);
-            var edge2 = faces[i].getEdge2().rotate(angle, axis);
-            rotatedFaces[i] = new Face(edge1, edge2);
+            rotatedFaces[i] = faces[i].rotate(angle, axis);
         }
 
         return new Polyhedron(rotatedFaces);
@@ -124,9 +251,7 @@ class Polyhedron {
         Face[] transformedFaces = new Face[faces.length];
 
         for (int i = 0; i < faces.length; i++) {
-            var edge1 = faces[i].getEdge1().apply(T);
-            var edge2 = faces[i].getEdge2().apply(T);
-            transformedFaces[i] = new Face(edge1, edge2);
+            transformedFaces[i] = faces[i].apply(T);
         }
 
         return new Polyhedron(transformedFaces);
@@ -281,7 +406,7 @@ class Point3D {
         if (axis == null)
             throw new IllegalArgumentException("Вместо оси вращения пришел null");
         if (axis.getX() == 0 && axis.getY() == 0 && axis.getZ() == 0)
-            throw new IllegalArgumentException("Оси не может задаваться нулевым вектором.");
+            throw new IllegalArgumentException("Ось не может задаваться нулевым вектором");
         double axisVectorLength = Math.sqrt(axis.getX() * axis.getX() +
                                             axis.getY() * axis.getY() +
                                             axis.getZ() * axis.getZ());
@@ -381,45 +506,41 @@ class Edge3D {
 }
 
 class Face {
-    private final Edge3D edge1;
-    private final Edge3D edge2;
+    private final Point3D p1;
+    private final Point3D p2;
+    private final Point3D p3;
+    private final Point3D p4;
 
-    // Конструктор ожидает 2 грани, с совпадающим началом.
-    // Грани упорядочены так, чтобы по ним определялся вектор нормали
-    // Сейчас годится только для случая, когда все грани параллелограммы
-    public Face(Edge3D edge1, Edge3D edge2) {
-        if (edge1 == null || edge2 == null)
-            throw new IllegalArgumentException("Ребра не могуть быть null");
-        if (!edge1.getP1().equals(edge2.getP1()))
-            throw new IllegalArgumentException("Начальные точки ребер должны совпадать");
-        this.edge1 = edge1;
-        this.edge2 = edge2;
-    }
+    // Конструктор ожидает 4 точки.
+    // Точки должны быть расположены так, чтобы по первым трем можно было
+    // посчитать нормаль как векторное произведение [p2 - p1, p3 - p1]
+    public Face(Point3D p1, Point3D p2, Point3D p3, Point3D p4) {
+        if (p1 == null || p2 == null || p3 == null || p4 == null)
+            throw new IllegalArgumentException("Вершины быть null");
 
-    public Edge3D getEdge1() {
-        return edge1;
-    }
-
-    public Edge3D getEdge2() {
-        return edge2;
+        this.p1 = p1;
+        this.p2 = p2;
+        this.p3 = p3;
+        this.p4 = p4;
     }
 
     public Edge3D[] getEdges() {
-        Edge3D[] edges = new Edge3D[4];
-        edges[0] = edge1;
-        edges[1] = edge2;
+        return new Edge3D[]{
+                new Edge3D(p1, p2),
+                new Edge3D(p1, p3),
+                new Edge3D(p3, p4),
+                new Edge3D(p2, p4),
+        };
+    }
 
-        edges[2] = new Edge3D(edge1.getP1().add(edge2.getP2().sub(edge2.getP1())),
-                              edge1.getP2().add(edge2.getP2().sub(edge2.getP1())));
-        edges[3] = new Edge3D(edge2.getP1().add(edge1.getP2().sub(edge1.getP1())),
-                              edge2.getP2().add(edge1.getP2().sub(edge1.getP1())));
-        return edges;
+    public Point3D[] getPoints() {
+        return new Point3D[] {p1, p2, p3, p4};
     }
 
     public Point3D getNormal() {
         // Вернет точку, определяющую радиус-вектор, совпадающий с вектором нормали
-        var r1 = edge1.getP2().sub(edge1.getP1());
-        var r2 = edge2.getP2().sub(edge2.getP1());
+        var r1 = p2.sub(p1);
+        var r2 = p3.sub(p1);
         var n = new Point3D(r1.getY() * r2.getZ() - r1.getZ() * r2.getY(),
                             r1.getZ() * r2.getX() - r1.getX() * r2.getZ(),
                             r1.getX() * r2.getY() - r1.getY() * r2.getX());
@@ -433,6 +554,11 @@ class Face {
         if (T.length != 4 || T[0].length != 4)
             throw new IllegalArgumentException("Матрица преобразования должна быть 4x4");
 
-        return new Face(edge1.apply(T), edge2.apply(T));
+        return new Face(p1.apply(T), p2.apply(T), p3.apply(T), p4.apply(T));
+    }
+
+    public Face rotate(double angle, Point3D axis) {
+        return new Face(p1.rotate(angle, axis), p2.rotate(angle, axis),
+                        p3.rotate(angle, axis), p4.rotate(angle, axis));
     }
 }
