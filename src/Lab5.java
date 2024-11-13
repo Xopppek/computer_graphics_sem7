@@ -156,6 +156,8 @@ class Point3D {
         // задающего ось, вокруг которой производится вращение
         if (axis == null)
             throw new IllegalArgumentException("Вместо оси вращения пришел null");
+        if (axis.getX() == 0 && axis.getY() == 0 && axis.getZ() == 0)
+            throw new IllegalArgumentException("Оси не может задаваться нулевым вектором.");
         double axisVectorLength = Math.sqrt(axis.getX() * axis.getX() +
                 axis.getY() * axis.getY() +
                 axis.getZ() * axis.getZ());
