@@ -154,6 +154,8 @@ class Point3D {
     public Point3D rotate(double angle, Point3D axis) {
         // На вход ожидается угол в радианах, а также точка конца радиус-вектора
         // задающего ось, вокруг которой производится вращение
+        if (axis == null)
+            throw new IllegalArgumentException("Вместо оси вращения пришел null");
         double axisVectorLength = Math.sqrt(axis.getX() * axis.getX() +
                 axis.getY() * axis.getY() +
                 axis.getZ() * axis.getZ());
@@ -190,6 +192,8 @@ class Point3D {
         // Эта функция применяет преобразование координат
         // [X, Y, Z, H] = [x, y, z, 1]T
         // после нормализуем координаты [x`, y`, z`] = [X/H, Y/H, Z/H]
+        if (T == null)
+            throw new IllegalArgumentException("На вход пришел null");
         if (T.length != 4 || T[0].length != 4)
             throw new IllegalArgumentException("Матрица преобразования должна быть 4x4");
 
