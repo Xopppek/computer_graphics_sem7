@@ -401,7 +401,8 @@ class Canvas{
     }
 
     public void drawPoint(int x, int y, byte[] bgr){
-        image.put(y, x, bgr);
+        if (x >= 0 && y >= 0)
+            image.put(y, x, bgr);
     }
 
     public void drawLine(int x1, int y1, int x2, int y2, Color color){
