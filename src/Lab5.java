@@ -32,23 +32,25 @@ public class Lab5 extends Lab4 {
 
         var canvasParallel = new CanvasLab5(700, 700);
         var canvasPerspective = new CanvasLab5(700, 700);
+        var canvasParallelDel = new CanvasLab5(700, 700);
+        var canvasPerspectiveDel = new CanvasLab5(700, 700);
 
         var figure = new Polyhedron(new Face[]{
                 new Face(new Edge3D(new Point3D(100, 100, 0),   new Point3D(500, 100, 0)),
                          new Edge3D(new Point3D(100, 100, 0),   new Point3D(100, 500, 0))),
-                new Face(new Edge3D(new Point3D(100, 100, 0),   new Point3D(200, 200, 200)),
+                new Face(new Edge3D(new Point3D(100, 100, 0),   new Point3D(200, 200, 500)),
                          new Edge3D(new Point3D(100, 100, 0),   new Point3D(500, 100, 0))),
                 new Face(new Edge3D(new Point3D(100, 100, 0),   new Point3D(100, 500, 0)),
-                         new Edge3D(new Point3D(100, 100, 0),   new Point3D(200, 200, 200))),
+                         new Edge3D(new Point3D(100, 100, 0),   new Point3D(200, 200, 500))),
                 new Face(new Edge3D(new Point3D(100, 500, 0),   new Point3D(500, 500, 0)),
-                         new Edge3D(new Point3D(100, 500, 0),   new Point3D(200, 600, 200))),
+                         new Edge3D(new Point3D(100, 500, 0),   new Point3D(200, 600, 500))),
                 new Face(new Edge3D(new Point3D(500, 500, 0),   new Point3D(500, 100, 0)),
-                         new Edge3D(new Point3D(500, 500, 0),   new Point3D(600, 600, 200))),
-                new Face(new Edge3D(new Point3D(200, 200, 200), new Point3D(200, 600, 200)),
-                         new Edge3D(new Point3D(200, 200, 200), new Point3D(600, 200, 200))),
+                         new Edge3D(new Point3D(500, 500, 0),   new Point3D(600, 600, 500))),
+                new Face(new Edge3D(new Point3D(200, 200, 500), new Point3D(200, 600, 500)),
+                         new Edge3D(new Point3D(200, 200, 500), new Point3D(600, 200, 500))),
         });
 
-         figure = figure.rotate(Math.PI / 14, new Point3D(0, 0, 1));
+        figure = figure.rotate(Math.PI / 15, new Point3D(0, 0, 1));
         // figure = figure.apply(T);
 
         var parallelProjectionLines = figure.getParallelProjectionXY();
@@ -59,10 +61,25 @@ public class Lab5 extends Lab4 {
         Imgcodecs.imwrite(savePath + "parallel.png", canvasParallel.getImage());
         displayImage(canvasParallel.getImage(), 1, "Parallel Projection");
 
-        var perspectiveProjectionLines = figure.getPerspectiveProjectionXYpointOnZ(0.0025);
+        var perspectiveProjectionLines = figure.getPerspectiveProjectionXYpointOnZ(10);
         for (var line : perspectiveProjectionLines) {
             canvasPerspective.drawLine(line[0], line[1], Canvas.Color.BLACK);
         }
+
+        var parallelDelLines = figure.getParallelProjectionXY(new Point3D(0, 0, -1));
+        for (var line : parallelDelLines) {
+            canvasParallelDel.drawLine(line[0], line[1], Canvas.Color.BLACK);
+        }
+        displayImage(canvasParallelDel.getImage(), 1, "Parallel with deleted edges");
+        Imgcodecs.imwrite(savePath + "parallel_deleted_edges.png", canvasParallelDel.getImage());
+
+        var perspectiveDelLines = figure.getPerspectiveProjectionXYpointOnZ(10, new Point3D(0, 0, -1));
+        for (var line : perspectiveDelLines) {
+            canvasPerspectiveDel.drawLine(line[0], line[1], Canvas.Color.BLACK);
+        }
+        displayImage(canvasPerspectiveDel.getImage(), 1, "Perspective with deleted edges");
+        Imgcodecs.imwrite(savePath + "perspective_deleted_edges.png", canvasPerspectiveDel.getImage());
+
 
         Imgcodecs.imwrite(savePath + "perspective.png", canvasPerspective.getImage());
         displayImage(canvasPerspective.getImage(), 1, "Perspective Projection");
@@ -131,6 +148,33 @@ class Polyhedron {
         return lines;
     }
 
+    public Point2D[][] getParallelProjectionXY(Point3D viewer){
+        if (viewer == null)
+            throw new IllegalArgumentException("Вместо вектора направления наблюдение пришел null");
+        if (viewer.equals(new Point3D(0, 0, 0)))
+            throw new IllegalArgumentException("Вектор направления наблюдения не может быть нулевым");
+
+        var lines = new Point2D[faces.length * 4][2];
+        for (int i = 0; i < faces.length; i++) {
+            Edge3D[] edges = faces[i].getEdges();
+            Point3D n = faces[i].getNormal();
+
+            if (n.dot(viewer) > 0)
+                for (int j = 0; j < 4; j++) {
+                    lines[4 * i + j][0] = new Point2D(edges[j].getP1().getX(), edges[j].getP1().getY());
+                    lines[4 * i + j][1] = new Point2D(edges[j].getP2().getX(), edges[j].getP2().getY());
+                }
+            else
+                for (int j = 0; j < 4; j++) {
+                    // заглушки
+                    lines[4 * i + j][0] = new Point2D(-1, -1);
+                    lines[4 * i + j][1] = new Point2D(-1, -1);
+                }
+        }
+
+        return lines;
+    }
+
     public Point2D[][] getPerspectiveProjectionXYpointOnZ(double k) {
         var lines = new Point2D[faces.length * 4][2];
 
@@ -146,6 +190,44 @@ class Polyhedron {
                                                  .multiply(1 / (k * p2.getZ() + 1));
             }
         }
+        return lines;
+    }
+
+    public Point2D[][] getPerspectiveProjectionXYpointOnZ(double k, Point3D viewer) {
+        if (viewer == null)
+            throw new IllegalArgumentException("Вместо вектора направления наблюдение пришел null");
+        if (viewer.equals(new Point3D(0, 0, 0)))
+            throw new IllegalArgumentException("Вектор направления наблюдения не может быть нулевым");
+
+        var lines = new Point2D[faces.length * 4][2];
+
+        double[][] T = {
+                { 1, 0, 0, 0},
+                { 0, 1, 0, 0},
+                { 0, 0, 1, k},
+                { 0, 0, 0, 1}
+        };
+
+        for (int i = 0; i < faces.length; i++) {
+            Edge3D[] edges = faces[i].getEdges();
+            Point3D n = faces[i].apply(T).getNormal();
+
+            if (n.dot(viewer) > 0)
+                for (int j = 0; j < 4; j++) {
+                    var p1 = edges[j].getP1();
+                    var p2 = edges[j].getP2();
+                    lines[4 * i + j][0] = new Point2D(p1.getX(), p1.getY())
+                            .multiply(1 / (k * p1.getZ() + 1));
+                    lines[4 * i + j][1] = new Point2D(p2.getX(), p2.getY())
+                            .multiply(1 / (k * p2.getZ() + 1));
+                }
+            else
+                for (int j = 0; j < 4; j++) {
+                    lines[4 * i + j][0] = new Point2D(-1, -1);
+                    lines[4 * i + j][1] = new Point2D(-1, -1);
+                }
+        }
+
         return lines;
     }
 }
@@ -187,6 +269,10 @@ class Point3D {
 
     public Point3D multiply(double scalar) {
         return new Point3D(getX() * scalar, getY() * scalar, getZ() * scalar);
+    }
+
+    public double dot(Point3D p) {
+        return getX() * p.getX() + getY() * p.getY() + getZ() * p.getZ();
     }
 
     public Point3D rotate(double angle, Point3D axis) {
@@ -300,6 +386,7 @@ class Face {
 
     // Конструктор ожидает 2 грани, с совпадающим началом.
     // Грани упорядочены так, чтобы по ним определялся вектор нормали
+    // Сейчас годится только для случая, когда все грани параллелограммы
     public Face(Edge3D edge1, Edge3D edge2) {
         if (edge1 == null || edge2 == null)
             throw new IllegalArgumentException("Ребра не могуть быть null");
@@ -335,8 +422,17 @@ class Face {
         var r2 = edge2.getP2().sub(edge2.getP1());
         var n = new Point3D(r1.getY() * r2.getZ() - r1.getZ() * r2.getY(),
                             r1.getZ() * r2.getX() - r1.getX() * r2.getZ(),
-                            r1.getZ() * r2.getY() - r1.getY() * r2.getX());
+                            r1.getX() * r2.getY() - r1.getY() * r2.getX());
         double length = Math.sqrt(n.getX() * n.getX() + n.getY() * n.getY() + n.getZ() * n.getZ());
         return n.multiply(1 / length);
+    }
+
+    public Face apply(double[][] T){
+        if (T == null)
+            throw new IllegalArgumentException("На вход пришел null");
+        if (T.length != 4 || T[0].length != 4)
+            throw new IllegalArgumentException("Матрица преобразования должна быть 4x4");
+
+        return new Face(edge1.apply(T), edge2.apply(T));
     }
 }
