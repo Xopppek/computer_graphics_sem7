@@ -85,6 +85,14 @@ class CanvasLab4 extends Canvas{
         super(width, height);
     }
 
+    public void drawPoint(Point2D p, Color color) {
+        drawPoint(p, color.getBgr());
+    }
+
+    public void drawPoint(Point2D p, byte[] bgr) {
+        drawPoint((int) Math.round(p.getX()), (int) Math.round(p.getY()), bgr);
+    }
+
     public void drawLine(Point2D p1, Point2D p2, Color color) {
         drawLine(p1, p2, color.getBgr());
     }
