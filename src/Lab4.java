@@ -120,19 +120,19 @@ class CanvasLab4 extends Canvas{
         drawLine(prevPoint, p3, bgr);
     }
 
-    private Point2D bezierLine(Point2D p0, Point2D p1, double t){
+    protected Point2D bezierLine(Point2D p0, Point2D p1, double t){
         return p0.multiply(1.0 - t).add(p1.multiply(t));
     }
 
-    private Point2D bezierQuadratic(Point2D p0, Point2D p1, Point2D p2, double t){
+    protected Point2D bezierQuadratic(Point2D p0, Point2D p1, Point2D p2, double t){
         return bezierLine(bezierLine(p0, p1, t), bezierLine(p1, p2, t), t);
     }
 
-    private Point2D bezierCubic(Point2D p0, Point2D p1, Point2D p2, Point2D p3, double t){
+    protected Point2D bezierCubic(Point2D p0, Point2D p1, Point2D p2, Point2D p3, double t){
         return bezierLine(bezierQuadratic(p0, p1, p2, t), bezierQuadratic(p1, p2, p3, t), t);
     }
 
-    private double bezierDist(Point2D p){
+    protected double bezierDist(Point2D p){
         return Math.abs(p.getX()) + Math.abs(p.getY());
     }
 
