@@ -1,5 +1,6 @@
 import org.opencv.core.Core;
 import org.opencv.highgui.HighGui;
+import org.opencv.imgcodecs.Imgcodecs;
 
 public class HW extends Lab5{
     static {
@@ -24,6 +25,8 @@ public class HW extends Lab5{
         for (var point : points) {
             canvasBSpline.drawPoint(point, Canvas.Color.RED);
         }
+
+        Imgcodecs.imwrite(savePath + "bspline.png", canvasBSpline.getImage());
 
         displayImage(canvasBSpline.getImage(), 4, "B-Spline");
 
@@ -72,7 +75,6 @@ class CanvasHW extends CanvasLab5 {
 
         int m = points.length;
 
-        //drawLine(points[0], points[0].multiply(5.0 / 6).add(points[1].multiply(1.0 / 6)), bgr);
         drawBSplineBezierCurveCubic(points[0], points[0], points[0], points[1], bgr);
         drawBSplineBezierCurveCubic(points[0], points[0], points[1], points[2], bgr);
         for (int i = 3; i < m; i++) {
