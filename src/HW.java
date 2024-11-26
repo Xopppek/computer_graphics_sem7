@@ -69,7 +69,7 @@ public class HW extends Lab5{
         for (int x = 0; x < image.width(); x++) {
             for (int y = 0; y < image.height(); y++) {
                 image.get(y, x, bgr);
-                counts[(int) ((bgr[0] + 128) * 0.114 + (bgr[1] + 128) * 0.587 + (bgr[2] + 128) * 0.299)]++;
+                counts[(int) ((bgr[0] & 0xFF) * 0.114 + (bgr[1] & 0xFF) * 0.587 + (bgr[2] & 0xFF) * 0.299)]++;
             }
         }
         canvas.drawHist(counts);
@@ -83,8 +83,8 @@ public class HW extends Lab5{
         for (int x = 0; x < image.width(); x++) {
             for (int y = 0; y < image.height(); y++) {
                 image.get(y, x, bgr);
-                double Y = ((bgr[0] + 128) * 0.114 + (bgr[1] + 128) * 0.587 + (bgr[2] + 128) * 0.299);
-                counts[(int) (0.5 * (bgr[0] + 128 - Y) / (1 - 0.114) + 128)]++;
+                double Y = ((bgr[0] & 0xFF) * 0.114 + (bgr[1] & 0xFF) * 0.587 + (bgr[2] & 0xFF) * 0.299);
+                counts[(int) (0.5 * ((bgr[0] & 0xFF) - Y) / (1 - 0.114) + 128)]++;
             }
         }
         canvas.drawHist(counts);
@@ -98,8 +98,8 @@ public class HW extends Lab5{
         for (int x = 0; x < image.width(); x++) {
             for (int y = 0; y < image.height(); y++) {
                 image.get(y, x, bgr);
-                double Y = ((bgr[0] + 128) * 0.114 + (bgr[1] + 128) * 0.587 + (bgr[2] + 128) * 0.299);
-                counts[(int) (0.5 * (bgr[2] + 128 - Y) / (1 - 0.299) + 128)]++;
+                double Y = ((bgr[0] & 0xFF) * 0.114 + (bgr[1] & 0xFF) * 0.587 + (bgr[2] & 0xFF) * 0.299);
+                counts[(int) (0.5 * ((bgr[2] & 0xFF) - Y) / (1 - 0.299) + 128)]++;
             }
         }
         canvas.drawHist(counts);
